@@ -48,15 +48,27 @@ def process_article(article_path):
         for image_url in image_urls:
             download_image(image_url, images_dir_path)
 
+def get_article_paths(dirname, article_name):
+    if article_name:
+        return pathlib.Path(dirname).glob(f"*{article}*.md")
+
+    return pathlib.Path(dirname).glob('*.md')
+
+
 def parse_command_line_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("dir", help="markdown files directory")
+    parser.add_argument("--article", help="download images for single article")
+
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_command_line_args()
-    article_paths = pathlib.Path(args.dir).glob('*.md')
+    dirname = args.dir
+    article = args.article
+
+    article_paths = get_article_paths(dirname, article)
 
     for article_path in article_paths:
         process_article(article_path)

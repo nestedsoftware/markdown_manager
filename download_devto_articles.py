@@ -44,6 +44,12 @@ def get_contents_for_all_articles(username):
     return articles_detailed_contents
 
 
+def get_contents_for_article(username, article_name):
+    articles = get_articles(username)
+    for article in articles:
+        if article_name in article['url']:
+            return [get_article_contents(article['id'])]
+
 def get_article_filename(article_url, article_id, published_date):
     url_path = pathlib.Path(urlparse(article_url).path)
     dt = datetime.datetime.strptime(published_date, '%Y-%m-%dT%H:%M:%S%z')
@@ -67,11 +73,19 @@ def save_article(output_dir_path, article_contents):
     with article_path.open("w", encoding="utf8", newline="\n") as f:
         f.write(article_markdown)
 
+def get_articles_with_contents(username, article_name):
+    if not article_name:
+        return get_contents_for_all_articles(username)
+
+    return get_contents_for_article(username, article_name)
+
+
 
 def parse_command_line_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("username", help="whose articles to download")
     parser.add_argument("dir", help="output files directory")
+    parser.add_argument("--article", help="article to download")
     return parser.parse_args()
 
 
@@ -79,10 +93,13 @@ if __name__ == '__main__':
     args = parse_command_line_args()
 
     username = args.username
-    articles_detailed_contents = get_contents_for_all_articles(username)
+    article = args.article
+    articles_detailed_contents = get_articles_with_contents(username, article)
 
     output_dir_path = pathlib.Path(args.dir)
-    os.makedirs(output_dir_path)
+
+    if not article:
+        os.makedirs(output_dir_path)
 
     for article_detailed_contents in articles_detailed_contents:
         save_article(output_dir_path, article_detailed_contents)
