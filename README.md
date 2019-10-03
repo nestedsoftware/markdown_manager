@@ -1,4 +1,10 @@
-To run:
+To download a user's articles as markdown from dev.to:
+
+* `python download_devto_articles.py <username> <dir>`
+
+This script downloads all of a user's published articles, and saves each article as a markdown file in the `dir` folder. The name of each article corresponds to the last portion of its url, but also appends the article's dev.to `id` in the filename just before the `.md` suffix.
+
+To download and save article images:
 
 * `python download_images.py <dir>`
 
