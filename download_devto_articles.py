@@ -1,4 +1,5 @@
 import os
+import datetime
 import argparse
 import pathlib
 from urllib.parse import urlparse
@@ -43,9 +44,13 @@ def get_contents_for_all_articles(username):
     return articles_detailed_contents
 
 
-def get_article_filename(article_url, article_id):
+def get_article_filename(article_url, article_id, published_date):
     url_path = pathlib.Path(urlparse(article_url).path)
-    filename = url_path.name + f".{article_id}.md"
+    dt = datetime.datetime.strptime(published_date, '%Y-%m-%dT%H:%M:%S%z')
+
+    filename = (f"{dt.strftime('%Y%m%d')}-"
+                + url_path.name
+                + f".{article_id}.md")
     return filename
 
 
@@ -53,8 +58,10 @@ def save_article(output_dir_path, article_contents):
     article_url = article_contents['url']
     article_id = article_contents['id']
     article_markdown = article_contents['body_markdown']
+    published_date_string = article_contents['published_at']
 
-    article_filename = get_article_filename(article_url, article_id)
+    article_filename = get_article_filename(article_url, article_id,
+                                            published_date_string)
 
     article_path = output_dir_path / article_filename
     with article_path.open("w", encoding="utf8", newline="\n") as f:
