@@ -2,19 +2,19 @@ Scripts that help back up and manage dev.to blog articles.
 
 To download a user's articles as markdown from dev.to:
 
-* `python download_devto_articles.py <username> <dir> --article <article>`
+* `python download_devto_articles.py <username> <download_dir> --article <article>`
 
-This script downloads all of a user's published articles, and saves each article as a markdown file in the `dir` folder. The filename created for each article corresponds to the last portion of its url, but prepends the publication date, and appends the article's dev.to `id`, to the filename (just before the `.md` suffix).
+This script downloads all of a user's published articles, and saves each article as a markdown file in the `download_dir` folder. The filename created for each article corresponds to the last portion of its url, but prepends the publication date, and appends the article's dev.to `id`, to the filename (just before the `.md` suffix).
 
-> `article` is an optional argument corresponding to the article's name in the url on dev.to. When provided, only that article will be downloaded. For this use case, `dir` must already exist.
+> `article` is an optional argument corresponding to the article's name in the url on dev.to. When provided, only that article will be downloaded. For this use case, `download_dir` must already exist.
 
 To download and save article images:
 
-* `python download_images.py <dir> --article <article>`
+* `python download_images.py <markdown_dir> --article <article>`
 
-This script reads through markdown files in the `dir` folder and downloads the images referenced in each file. The images are saved into a folder with the same name as the corresponding markdown file (excluding the file extension). The images are saved with filenames that match the filename for the url referenced in the markdown file.
+This script reads through markdown files in the `markdown_dir` folder and downloads the images referenced in each file. The images are saved into a folder with the same name as the corresponding markdown file (excluding the file extension). The images are saved with filenames that match the filename for the url referenced in the markdown file.
 
-> `article` is an optional argument corresponding to the article's name in the url on dev.to. When provided, only the images for that article will be downloaded. For this use case, `dir` must already exist.
+> `article` is an optional argument corresponding to the article's name in the url on dev.to. When provided, only the images for that article will be downloaded. For this use case, `markdown_dir` must already exist.
 
 To create a copy with local image references:
 
