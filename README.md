@@ -24,3 +24,9 @@ This script will make a copy of the markdown files and image folders in `srcdir`
 
 > * `article` is an optional argument corresponding to the article's name in the url on dev.to. When provided, only that article will be updated. For this use case, `destdir` must already exist.
 > * This script does not currently re-write links to one's own articles on dev.to that may be in the markdown files. It also does not have special handling for frontmatter, liquid tags, etc.
+
+To combine the previous three steps, run:
+
+* `python download_articles_images_and_create_localized_copies.py <username> <download_dir> <localized_dir> -- article <article>`
+
+`download_dir` is the directory into which to download the markdown files and images. `localized_dir` is the directory into which to copy these files when updating the markdown files to use local image references. `article` is the optional parameter that specifies the name of a single file. As before, when it's used, only the file with that name in its url will be processed.
