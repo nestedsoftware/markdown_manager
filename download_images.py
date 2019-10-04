@@ -9,24 +9,18 @@ import shutil
 
 from common import cover_image_pattern, image_pattern
 
-def download_image(url, images_dir_path):
-    url_path = pathlib.Path(urlparse(url).path)
-    filename = url_path.name
-    file_path = images_dir_path / filename
 
-    # Download the file from `url` and save it locally under `filename`:
-    with urllib.request.urlopen(url) as r, open(file_path, 'wb') as f:
-        shutil.copyfileobj(r, f)
+def download_images(dirname, article):
+    article_paths = get_article_paths(dirname, article)
+    for article_path in article_paths:
+        process_article(article_path)
 
 
-def get_cover_image_url(str):
-    result = cover_image_pattern.match(str)
-    return result.group('url') if result else None
+def get_article_paths(dirname, article_name):
+    if article_name:
+        return pathlib.Path(dirname).glob(f"*{article}*.md")
 
-
-def get_markdown_image_urls(str):
-    urls = [r.groupdict()['url'] for r in image_pattern.finditer(str)]
-    return urls
+    return pathlib.Path(dirname).glob('*.md')
 
 
 def process_article(article_path):
@@ -48,16 +42,30 @@ def process_article(article_path):
         for image_url in image_urls:
             download_image(image_url, images_dir_path)
 
-def get_article_paths(dirname, article_name):
-    if article_name:
-        return pathlib.Path(dirname).glob(f"*{article}*.md")
 
-    return pathlib.Path(dirname).glob('*.md')
+def get_cover_image_url(str):
+    result = cover_image_pattern.match(str)
+    return result.group('url') if result else None
+
+
+def get_markdown_image_urls(str):
+    urls = [r.groupdict()['url'] for r in image_pattern.finditer(str)]
+    return urls
+
+
+def download_image(url, images_dir_path):
+    url_path = pathlib.Path(urlparse(url).path)
+    filename = url_path.name
+    file_path = images_dir_path / filename
+
+    # Download the file from `url` and save it locally under `filename`:
+    with urllib.request.urlopen(url) as r, open(file_path, 'wb') as f:
+        shutil.copyfileobj(r, f)
 
 
 def parse_command_line_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("dir", help="markdown files directory")
+    parser.add_argument("markdown_dir", help="markdown files directory")
     parser.add_argument("--article", help="download images for single article")
 
     return parser.parse_args()
@@ -65,10 +73,4 @@ def parse_command_line_args():
 
 if __name__ == "__main__":
     args = parse_command_line_args()
-    dirname = args.dir
-    article = args.article
-
-    article_paths = get_article_paths(dirname, article)
-
-    for article_path in article_paths:
-        process_article(article_path)
+    download_images(args.dir, args.article)

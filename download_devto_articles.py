@@ -5,8 +5,26 @@ import pathlib
 from urllib.parse import urlparse
 import urllib.request, json
 
-def get_url_string(username, page):
-    return f"https://dev.to/api/articles?username={username}&page={page}"
+
+def download_and_save_articles(username, dirname, article):
+    output_dir_path = pathlib.Path(dirname)
+    if not article:
+        os.makedirs(output_dir_path)
+
+    contents_of_articles = get_contents_of_articles(username, article)
+    for article_contents in contents_of_articles:
+        save_article(output_dir_path, article_contents)
+
+
+def get_contents_of_articles(username, article_name):
+    contents_of_articles = []
+    articles = get_articles(username)
+    for article in articles:
+        if not article_name or article_name in article['url']:
+            contents = get_article_contents(article['id'])
+            contents_of_articles.append(contents)
+
+    return contents_of_articles
 
 
 def get_articles(username):
@@ -17,6 +35,7 @@ def get_articles(username):
         with urllib.request.urlopen(url_string) as url:
             data = url.read().decode()
             results = json.loads(data)
+
             if len(results) == 0:
                 return all_results
 
@@ -26,38 +45,16 @@ def get_articles(username):
             url_string = get_url_string(username, page)
 
 
+def get_url_string(username, page):
+    return f"https://dev.to/api/articles?username={username}&page={page}"
+
+
 def get_article_contents(article_id):
     url_string = f"https://dev.to/api/articles/{article_id}"
     with urllib.request.urlopen(url_string) as url:
         data = url.read().decode()
         results = json.loads(data)
         return results
-
-
-def get_contents_for_all_articles(username):
-    articles_detailed_contents = []
-    articles = get_articles(username)
-    for article in articles:
-        contents = get_article_contents(article['id'])
-        articles_detailed_contents.append(contents)
-
-    return articles_detailed_contents
-
-
-def get_contents_for_article(username, article_name):
-    articles = get_articles(username)
-    for article in articles:
-        if article_name in article['url']:
-            return [get_article_contents(article['id'])]
-
-def get_article_filename(article_url, article_id, published_date):
-    url_path = pathlib.Path(urlparse(article_url).path)
-    dt = datetime.datetime.strptime(published_date, '%Y-%m-%dT%H:%M:%S%z')
-
-    filename = (f"{dt.strftime('%Y%m%d')}-"
-                + url_path.name
-                + f".{article_id}.md")
-    return filename
 
 
 def save_article(output_dir_path, article_contents):
@@ -73,33 +70,25 @@ def save_article(output_dir_path, article_contents):
     with article_path.open("w", encoding="utf8", newline="\n") as f:
         f.write(article_markdown)
 
-def get_articles_with_contents(username, article_name):
-    if not article_name:
-        return get_contents_for_all_articles(username)
 
-    return get_contents_for_article(username, article_name)
+def get_article_filename(article_url, article_id, published_date):
+    url_path = pathlib.Path(urlparse(article_url).path)
+    dt = datetime.datetime.strptime(published_date, '%Y-%m-%dT%H:%M:%S%z')
 
+    filename = (f"{dt.strftime('%Y%m%d')}-"
+                + url_path.name
+                + f".{article_id}.md")
+    return filename
 
 
 def parse_command_line_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("username", help="whose articles to download")
-    parser.add_argument("dir", help="output files directory")
+    parser.add_argument("download_dir", help="output files directory")
     parser.add_argument("--article", help="article to download")
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     args = parse_command_line_args()
-
-    username = args.username
-    article = args.article
-    articles_detailed_contents = get_articles_with_contents(username, article)
-
-    output_dir_path = pathlib.Path(args.dir)
-
-    if not article:
-        os.makedirs(output_dir_path)
-
-    for article_detailed_contents in articles_detailed_contents:
-        save_article(output_dir_path, article_detailed_contents)
+    download_and_save_articles(args.username, args.dir, args.article)

@@ -7,14 +7,19 @@ from urllib.parse import urlparse
 
 from common import cover_image_pattern, image_pattern
 
+
+def copy_and_localize(src_dir_path, dest_dir_path, article):
+    copy_image_folders(src_dir_path, dest_dir_path, article)
+    write_localized_markdown_files(src_dir_path, dest_dir_path, article)
+
+
 def copy_image_folders(src_dir_path, dest_dir_path, article_name):
      folders = filter(os.path.isdir, os.scandir(src_dir_path))
      for folder in folders:
         if not article_name or article_name in folder.name:
             shutil.copytree(folder, dest_dir_path / folder.name)
 
-def write_md_files_with_local_path_for_images(src_dir_path, dest_dir_path,
-                                              article_name):
+def write_localized_markdown_files(src_dir_path, dest_dir_path, article_name):
     infile_paths = get_article_paths(src_dir_path, article_name)
     for infile_path in infile_paths:
         outfile_path = dest_dir_path / infile_path.name
@@ -32,6 +37,12 @@ def get_article_paths(dirpath, article_name):
     return dirpath.glob('*.md')
 
 
+def transform_line(dirname, line):
+    replace = get_replace_function(dirname)
+    line = re.sub(cover_image_pattern, replace, line)
+    return re.sub(image_pattern, replace, line)
+
+
 def get_replace_function(dirname):
     def replace(match):
         matching_string = match.group(0)
@@ -41,12 +52,6 @@ def get_replace_function(dirname):
         return matching_string.replace(url, f"{filename}")
 
     return replace
-
-
-def transform_line(dirname, line):
-    replace = get_replace_function(dirname)
-    line = re.sub(cover_image_pattern, replace, line)
-    return re.sub(image_pattern, replace, line)
 
 
 def parse_command_line_args():
@@ -64,7 +69,4 @@ if __name__ == '__main__':
     dest_dir_path = pathlib.Path(args.destdir)
     article = args.article
 
-    copy_image_folders(src_dir_path, dest_dir_path, article)
-
-    write_md_files_with_local_path_for_images(src_dir_path, dest_dir_path,
-                                              article)
+    copy_and_localize(src_dir_path, dest_dir_path, article)
