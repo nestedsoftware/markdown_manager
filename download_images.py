@@ -10,8 +10,8 @@ import shutil
 from common import cover_image_pattern, image_pattern
 
 
-def download_images(dirname, article):
-    article_paths = get_article_paths(dirname, article)
+def download_images(dirname, article_name):
+    article_paths = get_article_paths(dirname, article_name)
     for article_path in article_paths:
         process_article(article_path)
 

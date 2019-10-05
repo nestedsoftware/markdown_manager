@@ -6,12 +6,12 @@ from urllib.parse import urlparse
 import urllib.request, json
 
 
-def download_and_save_articles(username, dirname, article):
+def download_and_save_articles(username, dirname, article_name):
     output_dir_path = pathlib.Path(dirname)
-    if not article:
+    if not article_name:
         os.makedirs(output_dir_path)
 
-    contents_of_articles = get_contents_of_articles(username, article)
+    contents_of_articles = get_contents_of_articles(username, article_name)
     for article_contents in contents_of_articles:
         save_article(output_dir_path, article_contents)
 

@@ -8,9 +8,9 @@ from urllib.parse import urlparse
 from common import cover_image_pattern, image_pattern
 
 
-def copy_and_localize(src_dir_path, dest_dir_path, article):
-    copy_image_folders(src_dir_path, dest_dir_path, article)
-    write_localized_markdown_files(src_dir_path, dest_dir_path, article)
+def copy_and_localize(src_dir_path, dest_dir_path, article_name):
+    copy_image_folders(src_dir_path, dest_dir_path, article_name)
+    write_localized_markdown_files(src_dir_path, dest_dir_path, article_name)
 
 
 def copy_image_folders(src_dir_path, dest_dir_path, article_name):
