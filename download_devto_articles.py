@@ -5,10 +5,11 @@ import pathlib
 from urllib.parse import urlparse
 import urllib.request, json
 
-from common import JEKYLL_POSTS_DIR
+from common import JEKYLL_POSTS_DIR, get_root_path
 
 def download_and_save_articles(username, dirname, article_name):
-    output_dir_path = pathlib.Path(dirname) / JEKYLL_POSTS_DIR
+    output_dir_path = get_root_path(pathlib.Path(dirname), JEKYLL_POSTS_DIR)
+
     if not article_name:
         os.makedirs(output_dir_path)
 

@@ -8,8 +8,12 @@ from urllib.parse import urlparse
 import shutil
 
 from common import cover_image_pattern, image_pattern
-from common import JEKYLL_POSTS_DIR, JEKYLL_IMAGES_DIR
-from common import get_article_paths
+from common import get_article_paths, get_root_path, JEKYLL_IMAGES_DIR
+
+
+def get_images_root_path(article_path):
+    return (get_root_path(article_path.parents[1], JEKYLL_IMAGES_DIR)
+            if JEKYLL_IMAGES_DIR else article_path.parents[0])
 
 
 def download_images(dirname, article_name):
@@ -33,8 +37,8 @@ def process_article(article_path):
                 image_urls.append(image_url)
 
     if image_urls:
-        images_root_path = (article_path.parents[1] / JEKYLL_IMAGES_DIR
-                           if JEKYLL_IMAGES_DIR else article_path.parents[0])
+        images_root_path = get_images_root_path(article_path)
+
         images_dir_path = images_root_path / article_path.stem
         os.makedirs(images_dir_path)
         for image_url in image_urls:

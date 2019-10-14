@@ -6,8 +6,21 @@ import shutil
 from urllib.parse import urlparse
 
 from common import cover_image_pattern, image_pattern
-from common import get_article_paths
+from common import get_root_path, get_article_paths
 from common import JEKYLL_POSTS_DIR, JEKYLL_IMAGES_DIR
+
+
+def get_image_dirname(images_root_path, image_dirname):
+    dirname = ""
+    parts = images_root_path.parts
+    if len(parts) > 1:
+        dirname += "/"
+        for i in range(1, len(parts)):
+            dirname += f"{parts[i]}/"
+
+    dirname += image_dirname
+
+    return dirname
 
 
 def copy_and_localize(src_dir_path, dest_dir_path, article_name):
@@ -26,9 +39,10 @@ def copy_image_folders(src_dir_path, dest_dir_path, article_name):
             shutil.copytree(folder, dest_dir_path / folder.name)
 
 def write_localized_markdown_files(src_dir_path, dest_dir_path, article_name):
-    images_root_path = dest_dir_path / JEKYLL_IMAGES_DIR
+    images_root_path = get_root_path(dest_dir_path, JEKYLL_IMAGES_DIR)
 
-    output_dir_path = pathlib.Path(dest_dir_path) / JEKYLL_POSTS_DIR
+    output_dir_path = get_root_path(pathlib.Path(dest_dir_path),
+                                    JEKYLL_POSTS_DIR)
     os.makedirs(output_dir_path)
 
     infile_paths = get_article_paths(src_dir_path, article_name)
@@ -37,7 +51,8 @@ def write_localized_markdown_files(src_dir_path, dest_dir_path, article_name):
         with infile_path.open("r", encoding="utf8") as infile, \
              outfile_path.open("a", encoding="utf8") as outfile:
             for line in infile:
-                image_dirname = f"/{JEKYLL_IMAGES_DIR}/{outfile_path.stem}"
+                image_dirname = get_image_dirname(images_root_path,
+                                                  outfile_path.stem)
                 outline = transform_line(image_dirname, line)
                 outfile.write(outline)
 

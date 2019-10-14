@@ -13,8 +13,12 @@ image_regex = alt + url + title
 image_pattern = re.compile(image_regex)
 
 
+def get_root_path(dirpath, subdir_name):
+    return dirpath / subdir_name
+
+
 def get_article_paths(dirpath, article_name):
-    articles_path = dirpath / JEKYLL_POSTS_DIR
+    articles_path = get_root_path(dirpath, JEKYLL_POSTS_DIR)
 
     if article_name:
         return articles_path.glob(f"*{article}*.md")
