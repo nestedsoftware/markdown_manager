@@ -8,19 +8,15 @@ from urllib.parse import urlparse
 import shutil
 
 from common import cover_image_pattern, image_pattern
+from common import JEKYLL_POSTS_DIR, JEKYLL_IMAGES_DIR
+from common import get_article_paths
 
 
 def download_images(dirname, article_name):
-    article_paths = get_article_paths(dirname, article_name)
+    dirpath = pathlib.Path(dirname)
+    article_paths = get_article_paths(dirpath, article_name)
     for article_path in article_paths:
         process_article(article_path)
-
-
-def get_article_paths(dirname, article_name):
-    if article_name:
-        return pathlib.Path(dirname).glob(f"*{article}*.md")
-
-    return pathlib.Path(dirname).glob('*.md')
 
 
 def process_article(article_path):
@@ -37,7 +33,9 @@ def process_article(article_path):
                 image_urls.append(image_url)
 
     if image_urls:
-        images_dir_path = article_path.parents[0] / article_path.stem
+        images_root_path = (article_path.parents[1] / JEKYLL_IMAGES_DIR
+                           if JEKYLL_IMAGES_DIR else article_path.parents[0])
+        images_dir_path = images_root_path / article_path.stem
         os.makedirs(images_dir_path)
         for image_url in image_urls:
             download_image(image_url, images_dir_path)

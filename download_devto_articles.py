@@ -5,9 +5,10 @@ import pathlib
 from urllib.parse import urlparse
 import urllib.request, json
 
+from common import JEKYLL_POSTS_DIR
 
 def download_and_save_articles(username, dirname, article_name):
-    output_dir_path = pathlib.Path(dirname)
+    output_dir_path = pathlib.Path(dirname) / JEKYLL_POSTS_DIR
     if not article_name:
         os.makedirs(output_dir_path)
 
@@ -75,7 +76,7 @@ def get_article_filename(article_url, article_id, published_date):
     url_path = pathlib.Path(urlparse(article_url).path)
     dt = datetime.datetime.strptime(published_date, '%Y-%m-%dT%H:%M:%S%z')
 
-    filename = (f"{dt.strftime('%Y%m%d')}-"
+    filename = (f"{dt.strftime('%Y-%m-%d')}-"
                 + url_path.name
                 + f".{article_id}.md")
     return filename
