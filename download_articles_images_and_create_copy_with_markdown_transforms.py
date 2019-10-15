@@ -3,7 +3,7 @@ import pathlib
 
 from download_devto_articles import download_and_save_articles
 from download_images import download_images
-from copy_with_local_images import copy_and_localize
+from create_copy_with_markdown_transforms import copy_and_transform
 
 
 def parse_command_line_args():
@@ -22,4 +22,5 @@ if __name__ == '__main__':
 
     download_and_save_articles(args.username, args.download_dir, args.article)
     download_images(args.download_dir, args.article)
-    copy_and_localize(src_dir_path, dest_dir_path, args.article)
+    copy_and_transform(src_dir_path, dest_dir_path, args.article,
+                       args.username)

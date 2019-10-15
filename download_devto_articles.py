@@ -1,14 +1,17 @@
 import os
 import datetime
+import json
 import argparse
 import pathlib
 from urllib.parse import urlparse
 import urllib.request, json
 
-from common import JEKYLL_POSTS_DIR, get_root_path
+from common import get_articles_root_path, replace_colon, ARTICLES_DICT_FILE
+
+articles_dict = {}
 
 def download_and_save_articles(username, dirname, article_name):
-    output_dir_path = get_root_path(pathlib.Path(dirname), JEKYLL_POSTS_DIR)
+    output_dir_path = get_articles_root_path(pathlib.Path(dirname))
 
     if not article_name:
         os.makedirs(output_dir_path)
@@ -16,6 +19,9 @@ def download_and_save_articles(username, dirname, article_name):
     contents_of_articles = get_contents_of_articles(username, article_name)
     for article_contents in contents_of_articles:
         save_article(output_dir_path, article_contents)
+
+    with open(ARTICLES_DICT_FILE, 'w', encoding='utf-8') as f:
+        json.dump(articles_dict, f, ensure_ascii=False, indent=4)
 
 
 def get_contents_of_articles(username, article_name):
@@ -72,6 +78,10 @@ def save_article(output_dir_path, article_contents):
     with article_path.open("w", encoding="utf8", newline="\n") as f:
         f.write(article_markdown)
 
+    key = f"{output_dir_path.name}/{article_filename}"
+    title = replace_colon(article_contents["title"]).strip()
+    articles_dict[key] = {"title": title}
+
 
 def get_article_filename(article_url, article_id, published_date):
     url_path = pathlib.Path(urlparse(article_url).path)
@@ -93,4 +103,4 @@ def parse_command_line_args():
 
 if __name__ == '__main__':
     args = parse_command_line_args()
-    download_and_save_articles(args.username, args.dir, args.article)
+    download_and_save_articles(args.username, args.download_dir, args.article)
