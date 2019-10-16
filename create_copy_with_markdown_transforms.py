@@ -64,8 +64,8 @@ def transform_markdown_files(src_dir_path, dest_dir_path, article_name,
             for line in infile:
                 image_dirname = get_image_dirname(images_root_path,
                                                   outfile_path.stem)
-                outline = transform_line(image_dirname, line, username,
-                                         src_dir_path, dest_dir_path)
+                outline = transform_line(line, username, src_dir_path,
+                                         dest_dir_path, image_dirname)
                 outfile.write(outline)
 
 
@@ -82,8 +82,9 @@ def get_image_dirname(images_root_path, image_dirname):
     return dirname
 
 
-def transform_line(dirname, line, username, src_dir_path, dest_dir_path):
-    replace = get_localize_image_function(dirname)
+def transform_line(line, username, src_dir_path, dest_dir_path,
+                   image_dirname):
+    replace = get_localize_image(image_dirname)
     line = re.sub(cover_image_pattern, replace, line)
     line = re.sub(image_pattern, replace, line)
 
@@ -103,13 +104,13 @@ def transform_line(dirname, line, username, src_dir_path, dest_dir_path):
     return line
 
 
-def get_localize_image_function(dirname):
+def get_localize_image(dirname):
     def replace(match):
         matching_string = match.group(0)
         url = match.group('url')
         url_path = pathlib.Path(urlparse(url).path)
         filename = f"{dirname}/{url_path.name}"
-        replacement = matching_string.replace(url, f"{filename}")
+        replacement = matching_string.replace(url, filename)
         return replacement
 
     return replace
@@ -124,15 +125,17 @@ def get_transform_liquid_link_tag(username, src_dir_path, dest_dir_path):
         if username in link_path:
             matches = list(src_dir_path.glob(f"**/*{filename_part}*.md"))
             assert len(matches) == 1, "should only be one match"
+
             filename = matches[0].name
             root = get_articles_root_path(dest_dir_path)
             pathname = f"{root.name}/{filename}"
+
             replacement = matching_string.replace(link_path, pathname)
             title = articles_dict[pathname]["title"]
-            return f"[{title}]({replacement})"
+            return f"* [{title}]({replacement})"
 
         pathname = f"https://dev.to/{link_path}"
-        return pathname
+        return f"* [{pathname}]({pathname})"
 
     return replace
 
@@ -163,7 +166,7 @@ def get_transform_liquid_github_tag():
         if 'http' not in url:
             url = f"https://github.com/{url}"
 
-        return f"[{url}]({url})"
+        return f"* [{url}]({url})"
 
     return replace
 
