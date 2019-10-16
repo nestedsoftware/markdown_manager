@@ -25,18 +25,6 @@ gist_pattern = re.compile(gist_regex)
 github_regex = r'{%\s*github\s*(?P<url>\S+)\s*%}'
 github_pattern = re.compile(github_regex)
 
-def get_image_dirname(images_root_path, image_dirname):
-    dirname = ""
-    parts = images_root_path.parts
-    if len(parts) > 1:
-        dirname += "/"
-        for i in range(1, len(parts)):
-            dirname += f"{parts[i]}/"
-
-    dirname += image_dirname
-
-    return dirname
-
 
 def copy_and_transform(src_dir_path, dest_dir_path, article_name, username):
     global articles_dict
@@ -58,6 +46,7 @@ def copy_image_folders(src_dir_path, dest_dir_path, article_name):
         if not article_name or article_name in folder.name:
             shutil.copytree(folder, dest_dir_path / folder.name)
 
+
 def transform_markdown_files(src_dir_path, dest_dir_path, article_name,
                              username):
     images_root_path = get_images_root_path(dest_dir_path)
@@ -78,6 +67,19 @@ def transform_markdown_files(src_dir_path, dest_dir_path, article_name,
                 outline = transform_line(image_dirname, line, username,
                                          src_dir_path, dest_dir_path)
                 outfile.write(outline)
+
+
+def get_image_dirname(images_root_path, image_dirname):
+    dirname = ""
+    parts = images_root_path.parts
+    if len(parts) > 1:
+        dirname += "/"
+        for i in range(1, len(parts)):
+            dirname += f"{parts[i]}/"
+
+    dirname += image_dirname
+
+    return dirname
 
 
 def transform_line(dirname, line, username, src_dir_path, dest_dir_path):
