@@ -13,14 +13,17 @@ from common import (get_articles_root_path, get_images_root_path,
 
 articles_dict = {}
 
-liquid_link_regex = r'\{%\s*link\s*(?P<url>[^\s]+)\s*%\}'
-liquid_link_pattern = re.compile(liquid_link_regex)
+link_regex = r'{%\s*link\s*(?P<url>\S+\/(?P<filename>[^\/\s]+))\/?\s*%}'
+link_pattern = re.compile(link_regex)
 
 title_regex = r'^title:\s*(?P<title>\S+(?:\s+\S+)*)'
 title_pattern = re.compile(title_regex)
 
-gist_regex = r'{%\s*gist\s*\S+\/(?P<gistid>[^\/\s]+)\/?\s*%}'
+gist_regex = r'{%\s*gist\s*(?P<url>\S+\/(?P<gistid>[^\/\s]+))\/?\s*%}'
 gist_pattern = re.compile(gist_regex)
+
+github_regex = r'{%\s*github\s*(?P<url>\S+)\s*%}'
+github_pattern = re.compile(github_regex)
 
 def get_image_dirname(images_root_path, image_dirname):
     dirname = ""
@@ -84,17 +87,16 @@ def transform_line(dirname, line, username, src_dir_path, dest_dir_path):
 
     replace = get_transform_liquid_link_tag(username, src_dir_path,
                                             dest_dir_path)
-    line = re.sub(liquid_link_pattern, replace, line)
+    line = re.sub(link_pattern, replace, line)
 
     replace = get_transform_colon_in_title()
     line = re.sub(title_pattern, replace, line)
 
+    replace = get_transform_liquid_gist_tag()
+    line = re.sub(gist_pattern, replace, line)
 
-    # replace = get_transform_liquid_gist_tag()
-    # line = re.sub(liquid_gist_tag_pattern, replace, line)
-
-    # replace =get_transform_liquid_github_tag()
-    # line = re.sub(liquid_github_tag_pattern, replace, line)
+    replace = get_transform_liquid_github_tag()
+    line = re.sub(github_pattern, replace, line)
 
     return line
 
@@ -114,20 +116,20 @@ def get_localize_image_function(dirname):
 def get_transform_liquid_link_tag(username, src_dir_path, dest_dir_path):
     def replace(match):
         matching_string = match.group(0)
-        link = match.group('url')
+        link_path = match.group('url')
+        filename_part = match.group('filename')
 
-        if username in link:
-            filename_part = link.split("/")[-1]
+        if username in link_path:
             matches = list(src_dir_path.glob(f"**/*{filename_part}*.md"))
             assert len(matches) == 1, "should only be one match"
             filename = matches[0].name
             root = get_articles_root_path(dest_dir_path)
             pathname = f"{root.name}/{filename}"
-            replacement = matching_string.replace(link, pathname)
+            replacement = matching_string.replace(link_path, pathname)
             title = articles_dict[pathname]["title"]
             return f"[{title}]({replacement})"
 
-        pathname = f"https://dev.to/{link}"
+        pathname = f"https://dev.to/{link_path}"
         return pathname
 
     return replace
@@ -142,6 +144,26 @@ def get_transform_colon_in_title():
 
     return replace
 
+
+def get_transform_liquid_gist_tag():
+    def replace(match):
+        matching_string = match.group(0)
+        url = match.group('url')
+        gistid = match.group('gistid')
+        return matching_string.replace(url, gistid)
+
+    return replace
+
+def get_transform_liquid_github_tag():
+    def replace(match):
+        matching_string = match.group(0)
+        url = match.group('url')
+        if 'http' not in url:
+            url = f"https://github.com/{url}"
+
+        return f"[{url}]({url})"
+
+    return replace
 
 def parse_command_line_args():
     parser = argparse.ArgumentParser()
