@@ -5,12 +5,12 @@ JEKYLL_IMAGES_DIR = "assets/images"
 
 ARTICLES_DICT_FILE = "articles_dict.json"
 
-cover_image_regex = r'cover_image:\s*(?P<url>[^\s]+)'
+cover_image_regex = r'^cover_image:\s*(?P<url>\S+)'
 cover_image_pattern = re.compile(cover_image_regex)
 
 alt = r'!\[(?P<alttext>[^\]]*)\]'
-url = r'\(\s*(?P<url>[^\s]+)\s*'
-title = r'(\"(?P<titletext>[^\"]*)\")?\)'
+url = r'\(\s*(?P<url>\S+)\s*'
+title = r'(?:\"(?P<titletext>[^\"]*)\")?\)'
 image_regex = alt + url + title
 image_pattern = re.compile(image_regex)
 

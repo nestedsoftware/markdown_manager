@@ -16,6 +16,11 @@ articles_dict = {}
 liquid_link_regex = r'\{%\s*link\s*(?P<url>[^\s]+)\s*%\}'
 liquid_link_pattern = re.compile(liquid_link_regex)
 
+title_regex = r'^title:\s*(?P<title>\S+(?:\s+\S+)*)'
+title_pattern = re.compile(title_regex)
+
+gist_regex = r'{%\s*gist\s*\S+\/(?P<gistid>[^\/\s]+)\/?\s*%}'
+gist_pattern = re.compile(gist_regex)
 
 def get_image_dirname(images_root_path, image_dirname):
     dirname = ""
@@ -81,6 +86,10 @@ def transform_line(dirname, line, username, src_dir_path, dest_dir_path):
                                             dest_dir_path)
     line = re.sub(liquid_link_pattern, replace, line)
 
+    replace = get_transform_colon_in_title()
+    line = re.sub(title_pattern, replace, line)
+
+
     # replace = get_transform_liquid_gist_tag()
     # line = re.sub(liquid_gist_tag_pattern, replace, line)
 
@@ -120,6 +129,16 @@ def get_transform_liquid_link_tag(username, src_dir_path, dest_dir_path):
 
         pathname = f"https://dev.to/{link}"
         return pathname
+
+    return replace
+
+
+def get_transform_colon_in_title():
+    def replace(match):
+        matching_string = match.group(0)
+        title = match.group('title')
+        updated_title = title.replace(":", "&#58;")
+        return matching_string.replace(title, updated_title)
 
     return replace
 
