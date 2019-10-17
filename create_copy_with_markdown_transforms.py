@@ -16,6 +16,9 @@ articles_dict = {}
 link_regex = r'{%\s*link\s*(?P<url>\S+\/(?P<filename>[^\/\s]+))\/?\s*%}'
 link_pattern = re.compile(link_regex)
 
+md_link_regex = (r'\[.*\]\((?P<url>https?://dev\.to/(?P<username>[^\/\\]+)/(?P<filename>[^\)\s]+)).*\)')
+md_link_pattern = re.compile(md_link_regex)
+
 title_regex = r'^title:\s*(?P<title>\S+(?:\s+\S+)*)'
 title_pattern = re.compile(title_regex)
 
@@ -92,6 +95,10 @@ def transform_line(line, username, src_dir_path, dest_dir_path,
                                             dest_dir_path)
     line = re.sub(link_pattern, replace, line)
 
+    replace = get_transform_markdown_link_tag(username, src_dir_path,
+                                              dest_dir_path)
+    line = re.sub(md_link_pattern, replace, line)
+
     replace = get_transform_colon_in_title()
     line = re.sub(title_pattern, replace, line)
 
@@ -123,13 +130,8 @@ def get_transform_liquid_link_tag(username, src_dir_path, dest_dir_path):
         filename_part = match.group('filename')
 
         if username in link_path:
-            matches = list(src_dir_path.glob(f"**/*{filename_part}*.md"))
-            assert len(matches) == 1, "should only be one match"
-
-            filename = matches[0].name
-            root = get_articles_root_path(dest_dir_path)
-            pathname = f"{root.name}/{filename}"
-
+            pathname = get_local_file_path(filename_part, src_dir_path,
+                                           dest_dir_path)
             replacement = matching_string.replace(link_path, pathname)
             title = articles_dict[pathname]["title"]
             return f"* [{title}]({replacement})"
@@ -138,6 +140,31 @@ def get_transform_liquid_link_tag(username, src_dir_path, dest_dir_path):
         return f"* [{pathname}]({pathname})"
 
     return replace
+
+def get_transform_markdown_link_tag(username, src_dir_path, dest_dir_path):
+    def replace(match):
+        matching_string = match.group(0)
+        link_path = match.group('url')
+        filename_part = match.group('filename')
+
+        user = match.group('username')
+        if username == user:
+            pathname = get_local_file_path(filename_part, src_dir_path,
+                                           dest_dir_path)
+            local_link = f"{{% link {pathname} %}}"
+            replacement = matching_string.replace(link_path, local_link)
+            return replacement
+    return replace
+
+def get_local_file_path(filename_part, src_dir_path, dest_dir_path):
+    found_files = list(src_dir_path.glob(f"**/*{filename_part}*.md"))
+    assert len(found_files) == 1, "should only be one match"
+
+    filename = found_files[0].name
+    root = get_articles_root_path(dest_dir_path)
+    pathname = f"{root.name}/{filename}"
+
+    return pathname
 
 
 def get_transform_colon_in_title():
