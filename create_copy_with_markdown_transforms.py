@@ -154,6 +154,9 @@ def get_transform_markdown_link_tag(username, src_dir_path, dest_dir_path):
             local_link = f"{{% link {pathname} %}}"
             replacement = matching_string.replace(link_path, local_link)
             return replacement
+
+        return matching_string
+
     return replace
 
 def get_local_file_path(filename_part, src_dir_path, dest_dir_path):
