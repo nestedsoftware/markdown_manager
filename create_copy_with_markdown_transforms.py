@@ -28,6 +28,9 @@ gist_pattern = re.compile(gist_regex)
 github_regex = r'{%\s*github\s*(?P<url>\S+)\s*%}'
 github_pattern = re.compile(github_regex)
 
+heading_regex = r'(?:^\s*|^)(?:#+)(?:\b)'
+heading_pattern = re.compile(heading_regex)
+
 
 def copy_and_transform(src_dir_path, dest_dir_path, article_name, username):
     global articles_dict
@@ -107,6 +110,9 @@ def transform_line(line, username, src_dir_path, dest_dir_path,
 
     replace = get_transform_liquid_github_tag()
     line = re.sub(github_pattern, replace, line)
+
+    replace = get_transform_heading()
+    line = re.sub(heading_pattern, replace, line)
 
     return line
 
@@ -197,6 +203,13 @@ def get_transform_liquid_github_tag():
             url = f"https://github.com/{url}"
 
         return f"* [{url}]({url})"
+
+    return replace
+
+def get_transform_heading():
+    def replace(match):
+        matching_string = match.group(0)
+        return f"{matching_string} "
 
     return replace
 
