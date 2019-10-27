@@ -31,7 +31,7 @@ def get_article_paths(dirpath, article_name):
     articles_path = get_root_path(dirpath, JEKYLL_POSTS_DIR)
 
     if article_name:
-        return articles_path.glob(f"*{article}*.md")
+        return articles_path.glob(f"*{article_name}*.md")
 
     return articles_path.glob('*.md')
 

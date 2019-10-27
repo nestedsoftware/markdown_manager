@@ -11,6 +11,8 @@ from common import JEKYLL_IMAGES_DIR
 from common import (get_articles_root_path, get_images_root_path,
                     get_article_paths, ARTICLES_DICT_FILE)
 
+from download_images import get_root_path_for_images
+
 from database import ArticlesDatabase
 
 link_regex = r'{%\s*link\s*(?P<url>\S+\/(?P<filename>[^\/\s]+))\/?\s*%}'
@@ -34,8 +36,6 @@ heading_pattern = re.compile(heading_regex)
 
 def copy_and_transform(root_path, src_dir_path, dest_dir_path, article_name,
                        username):
-    src_dir_path = src_dir_path
-    dest_dir_path = dest_dir_path
     copy_image_folders(root_path, src_dir_path, dest_dir_path, article_name)
     transform_markdown_files(root_path, src_dir_path, dest_dir_path,
                              article_name, username)
@@ -47,12 +47,21 @@ def copy_image_folders(root_path, src_dir_path, dest_dir_path, article_name):
                                          or not JEKYLL_IMAGES_DIR)
 
     src_dir_path = root_path / src_dir_path
-    dest_dir_path = root_path / dest_dir_path
-    folders = filter(is_images_dir, os.scandir(src_dir_path))
-    for folder in folders:
-        if not article_name or article_name in folder.name:
-            shutil.copytree(folder, dest_dir_path / folder.name)
 
+    if not article_name:
+        dest_dir_path = root_path / dest_dir_path
+        folders = filter(is_images_dir, os.scandir(src_dir_path))
+        for folder in folders:
+            shutil.copytree(folder, dest_dir_path / folder.name)
+    else:
+        article_paths = get_article_paths(src_dir_path, article_name)
+        article_path = list(article_paths)[0]
+        images_root_path = get_root_path_for_images(article_path)
+        images_dir_path = images_root_path / article_path.stem
+        images_dir_path_str = images_dir_path.as_posix()
+        dest_images_dir = images_dir_path_str.replace(src_dir_path.name,
+                                                      dest_dir_path.name)
+        shutil.copytree(images_dir_path, dest_images_dir)
 
 def transform_markdown_files(root_path, src_dir_path, dest_dir_path,
                              article_name, username):
@@ -62,7 +71,7 @@ def transform_markdown_files(root_path, src_dir_path, dest_dir_path,
     articles_db_path = root_path / ARTICLES_DICT_FILE
     articles_db = ArticlesDatabase(articles_db_path)
 
-    if len(images_root_path.parts) > 1:
+    if not article_name and len(images_root_path.parts) > 1:
         os.makedirs(root_path / output_dir_path)
 
     infile_paths = get_article_paths(root_path / src_dir_path, article_name)
