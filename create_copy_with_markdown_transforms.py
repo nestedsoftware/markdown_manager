@@ -123,7 +123,17 @@ def get_localize_image(dirname):
         url = match.group('url')
         url_path = pathlib.Path(urlparse(url).path)
         filename = f"{dirname}/{url_path.name}"
-        replacement = matching_string.replace(url, filename)
+
+        replacement = matching_string
+
+        try:
+            alttext = match.group('alttext')
+            replacement_alttext = alttext.replace('*', '&#42;')
+            replacement = replacement.replace(alttext, replacement_alttext)
+        except IndexError:
+            pass
+
+        replacement = replacement.replace(url, filename)
         return replacement
 
     return replace
