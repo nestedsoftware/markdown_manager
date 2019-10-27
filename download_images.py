@@ -16,8 +16,8 @@ def get_root_path_for_images(article_path):
             if JEKYLL_IMAGES_DIR else article_path.parents[0])
 
 
-def download_images(dirname, article_name):
-    dirpath = pathlib.Path(dirname)
+def download_images(root, dirname, article_name):
+    dirpath = pathlib.Path(root) / dirname
     article_paths = get_article_paths(dirpath, article_name)
     for article_path in article_paths:
         process_article(article_path)
@@ -68,6 +68,8 @@ def download_image(url, images_dir_path):
 def parse_command_line_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("markdown_dir", help="markdown files directory")
+    parser.add_argument("root", nargs="?", default=os.getcwd(),
+                        help="starting path")
     parser.add_argument("--article", help="download images for single article")
 
     return parser.parse_args()
@@ -75,4 +77,4 @@ def parse_command_line_args():
 
 if __name__ == "__main__":
     args = parse_command_line_args()
-    download_images(args.markdown_dir, args.article)
+    download_images(args.root, args.markdown_dir, args.article)

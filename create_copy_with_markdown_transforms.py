@@ -11,7 +11,7 @@ from common import JEKYLL_IMAGES_DIR
 from common import (get_articles_root_path, get_images_root_path,
                     get_article_paths, ARTICLES_DICT_FILE)
 
-articles_dict = {}
+from database import ArticlesDatabase
 
 link_regex = r'{%\s*link\s*(?P<url>\S+\/(?P<filename>[^\/\s]+))\/?\s*%}'
 link_pattern = re.compile(link_regex)
@@ -32,46 +32,50 @@ heading_regex = r'(?:^\s*|^)(?:#+)(?:\b)'
 heading_pattern = re.compile(heading_regex)
 
 
-def copy_and_transform(src_dir_path, dest_dir_path, article_name, username):
-    global articles_dict
-    with open(ARTICLES_DICT_FILE, 'r', encoding='utf-8') as f:
-        articles_dict = json.load(f)
+def copy_and_transform(root_path, src_dir_path, dest_dir_path, article_name,
+                       username):
+    src_dir_path = src_dir_path
+    dest_dir_path = dest_dir_path
+    copy_image_folders(root_path, src_dir_path, dest_dir_path, article_name)
+    transform_markdown_files(root_path, src_dir_path, dest_dir_path,
+                             article_name, username)
 
-    copy_image_folders(src_dir_path, dest_dir_path, article_name)
-    transform_markdown_files(src_dir_path, dest_dir_path, article_name,
-                             username)
 
-
-def copy_image_folders(src_dir_path, dest_dir_path, article_name):
+def copy_image_folders(root_path, src_dir_path, dest_dir_path, article_name):
     def is_images_dir(entry):
         return os.path.isdir(entry) and (entry.name in JEKYLL_IMAGES_DIR
                                          or not JEKYLL_IMAGES_DIR)
 
+    src_dir_path = root_path / src_dir_path
+    dest_dir_path = root_path / dest_dir_path
     folders = filter(is_images_dir, os.scandir(src_dir_path))
     for folder in folders:
         if not article_name or article_name in folder.name:
             shutil.copytree(folder, dest_dir_path / folder.name)
 
 
-def transform_markdown_files(src_dir_path, dest_dir_path, article_name,
-                             username):
+def transform_markdown_files(root_path, src_dir_path, dest_dir_path,
+                             article_name, username):
     images_root_path = get_images_root_path(dest_dir_path)
+    output_dir_path = get_articles_root_path(dest_dir_path)
 
-    output_dir_path = get_articles_root_path(pathlib.Path(dest_dir_path))
+    articles_db_path = root_path / ARTICLES_DICT_FILE
+    articles_db = ArticlesDatabase(articles_db_path)
 
     if len(images_root_path.parts) > 1:
-        os.makedirs(output_dir_path)
+        os.makedirs(root_path / output_dir_path)
 
-    infile_paths = get_article_paths(src_dir_path, article_name)
+    infile_paths = get_article_paths(root_path / src_dir_path, article_name)
     for infile_path in infile_paths:
-        outfile_path = output_dir_path / infile_path.name
+        outfile_path = root_path / output_dir_path / infile_path.name
         with infile_path.open("r", encoding="utf8") as infile, \
              outfile_path.open("a", encoding="utf8") as outfile:
             for line in infile:
                 image_dirname = get_image_dirname(images_root_path,
                                                   outfile_path.stem)
-                outline = transform_line(line, username, src_dir_path,
-                                         dest_dir_path, image_dirname)
+                outline = transform_line(articles_db, line, username,
+                                         src_dir_path, dest_dir_path,
+                                         image_dirname)
                 outfile.write(outline)
 
 
@@ -88,13 +92,13 @@ def get_image_dirname(images_root_path, image_dirname):
     return dirname
 
 
-def transform_line(line, username, src_dir_path, dest_dir_path,
+def transform_line(articles_db, line, username, src_dir_path, dest_dir_path,
                    image_dirname):
     replace = get_localize_image(image_dirname)
     line = re.sub(cover_image_pattern, replace, line)
     line = re.sub(image_pattern, replace, line)
 
-    replace = get_transform_liquid_link_tag(username, src_dir_path,
+    replace = get_transform_liquid_link_tag(articles_db, username, src_dir_path,
                                             dest_dir_path)
     line = re.sub(link_pattern, replace, line)
 
@@ -139,7 +143,8 @@ def get_localize_image(dirname):
     return replace
 
 
-def get_transform_liquid_link_tag(username, src_dir_path, dest_dir_path):
+def get_transform_liquid_link_tag(articles_db, username, src_dir_path,
+                                  dest_dir_path):
     def replace(match):
         matching_string = match.group(0)
         link_path = match.group('url')
@@ -149,7 +154,7 @@ def get_transform_liquid_link_tag(username, src_dir_path, dest_dir_path):
             pathname = get_local_file_path(filename_part, src_dir_path,
                                            dest_dir_path)
             replacement = matching_string.replace(link_path, pathname)
-            title = articles_dict[pathname]["title"]
+            title = articles_db.get_record(pathname)["title"]
             return f"* [{title}]({replacement})"
 
         pathname = f"https://dev.to/{link_path}"
@@ -227,6 +232,8 @@ def parse_command_line_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("srcdir", help="whose articles to download")
     parser.add_argument("destdir", help="output files directory")
+    parser.add_argument("root", nargs="?", default=os.getcwd(),
+                        help="starting path")
     parser.add_argument("--username", help="owner of this blog")
     parser.add_argument("--article", help="download images for single article")
 
@@ -235,9 +242,11 @@ def parse_command_line_args():
 
 if __name__ == '__main__':
     args = parse_command_line_args()
+    root_path = pathlib.Path(args.root)
     src_dir_path = pathlib.Path(args.srcdir)
     dest_dir_path = pathlib.Path(args.destdir)
     username = args.username
     article = args.article
 
-    copy_and_transform(src_dir_path, dest_dir_path, article, username)
+    copy_and_transform(root_path, src_dir_path, dest_dir_path,
+                       article, username)
