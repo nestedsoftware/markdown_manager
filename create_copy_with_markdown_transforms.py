@@ -83,8 +83,8 @@ def transform_markdown_files(root_path, src_dir_path, dest_dir_path,
                 image_dirname = get_image_dirname(images_root_path,
                                                   outfile_path.stem)
                 outline = transform_line(articles_db, line, username,
-                                         src_dir_path, dest_dir_path,
-                                         image_dirname)
+                                         root_path, src_dir_path,
+                                         dest_dir_path, image_dirname)
                 outfile.write(outline)
 
 
@@ -101,18 +101,19 @@ def get_image_dirname(images_root_path, image_dirname):
     return dirname
 
 
-def transform_line(articles_db, line, username, src_dir_path, dest_dir_path,
-                   image_dirname):
+def transform_line(articles_db, line, username, root_path, src_dir_path,
+                   dest_dir_path, image_dirname):
     replace = get_localize_image(image_dirname)
     line = re.sub(cover_image_pattern, replace, line)
     line = re.sub(image_pattern, replace, line)
 
-    replace = get_transform_liquid_link_tag(articles_db, username, src_dir_path,
+    replace = get_transform_liquid_link_tag(articles_db, username,
+                                            root_path, src_dir_path,
                                             dest_dir_path)
     line = re.sub(link_pattern, replace, line)
 
-    replace = get_transform_markdown_link_tag(username, src_dir_path,
-                                              dest_dir_path)
+    replace = get_transform_markdown_link_tag(username, root_path,
+                                              src_dir_path, dest_dir_path)
     line = re.sub(md_link_pattern, replace, line)
 
     replace = get_transform_colon_in_title()
@@ -152,16 +153,16 @@ def get_localize_image(dirname):
     return replace
 
 
-def get_transform_liquid_link_tag(articles_db, username, src_dir_path,
-                                  dest_dir_path):
+def get_transform_liquid_link_tag(articles_db, username, root_path,
+                                  src_dir_path, dest_dir_path):
     def replace(match):
         matching_string = match.group(0)
         link_path = match.group('url')
         filename_part = match.group('filename')
 
         if username in link_path:
-            pathname = get_local_file_path(filename_part, src_dir_path,
-                                           dest_dir_path)
+            pathname = get_local_file_path(filename_part, root_path,
+                                           src_dir_path, dest_dir_path)
             replacement = matching_string.replace(link_path, pathname)
             title = articles_db.get_record(pathname)["title"]
             return f"* [{title}]({replacement})"
@@ -171,7 +172,8 @@ def get_transform_liquid_link_tag(articles_db, username, src_dir_path,
 
     return replace
 
-def get_transform_markdown_link_tag(username, src_dir_path, dest_dir_path):
+def get_transform_markdown_link_tag(username, root_path,
+                                    src_dir_path, dest_dir_path):
     def replace(match):
         matching_string = match.group(0)
         link_path = match.group('url')
@@ -179,8 +181,8 @@ def get_transform_markdown_link_tag(username, src_dir_path, dest_dir_path):
 
         user = match.group('username')
         if username == user:
-            pathname = get_local_file_path(filename_part, src_dir_path,
-                                           dest_dir_path)
+            pathname = get_local_file_path(filename_part, root_path,
+                                           src_dir_path, dest_dir_path)
             local_link = f"{{% link {pathname} %}}"
             replacement = matching_string.replace(link_path, local_link)
             return replacement
@@ -189,8 +191,9 @@ def get_transform_markdown_link_tag(username, src_dir_path, dest_dir_path):
 
     return replace
 
-def get_local_file_path(filename_part, src_dir_path, dest_dir_path):
-    found_files = list(src_dir_path.glob(f"**/*{filename_part}*.md"))
+def get_local_file_path(filename_part, root_path, src_dir_path, dest_dir_path):
+    search_path = root_path / src_dir_path
+    found_files = list(search_path.glob(f"**/*{filename_part}*.md"))
     assert len(found_files) == 1, "should only be one match"
 
     filename = found_files[0].name
