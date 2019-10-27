@@ -11,8 +11,6 @@ from common import JEKYLL_IMAGES_DIR
 from common import (get_articles_root_path, get_images_root_path,
                     get_article_paths, ARTICLES_DICT_FILE)
 
-from download_images import get_root_path_for_images
-
 from database import ArticlesDatabase
 
 link_regex = r'{%\s*link\s*(?P<url>\S+\/(?P<filename>[^\/\s]+))\/?\s*%}'
@@ -42,45 +40,43 @@ def copy_and_transform(root_path, src_dir_path, dest_dir_path, article_name,
 
 
 def copy_image_folders(root_path, src_dir_path, dest_dir_path, article_name):
-    def is_images_dir(entry):
-        return os.path.isdir(entry) and (entry.name in JEKYLL_IMAGES_DIR
-                                         or not JEKYLL_IMAGES_DIR)
-
-    src_dir_path = root_path / src_dir_path
+    images_root_path = get_images_root_path(root_path / src_dir_path)
+    images_root_dest_path = get_images_root_path(root_path / dest_dir_path)
 
     if not article_name:
-        dest_dir_path = root_path / dest_dir_path
-        folders = filter(is_images_dir, os.scandir(src_dir_path))
-        for folder in folders:
-            shutil.copytree(folder, dest_dir_path / folder.name)
+        with os.scandir(images_root_path) as folders:
+            for folder in folders:
+                shutil.copytree(folder, images_root_dest_path / folder.name)
     else:
-        article_paths = get_article_paths(src_dir_path, article_name)
+        article_root_path = get_articles_root_path(root_path / src_dir_path)
+        article_paths = get_article_paths(article_root_path, article_name)
         article_path = list(article_paths)[0]
-        images_root_path = get_root_path_for_images(article_path)
+
         images_dir_path = images_root_path / article_path.stem
-        images_dir_path_str = images_dir_path.as_posix()
-        dest_images_dir = images_dir_path_str.replace(src_dir_path.name,
-                                                      dest_dir_path.name)
-        shutil.copytree(images_dir_path, dest_images_dir)
+        images_dir_dest_path = images_root_dest_path / article_path.stem
+
+        shutil.copytree(images_dir_path, images_dir_dest_path)
 
 def transform_markdown_files(root_path, src_dir_path, dest_dir_path,
                              article_name, username):
-    images_root_path = get_images_root_path(dest_dir_path)
-    output_dir_path = get_articles_root_path(dest_dir_path)
+    articles_root_path = get_articles_root_path(root_path / src_dir_path)
+    images_root_dest_path = get_images_root_path(root_path / dest_dir_path)
+    articles_root_dest_path = get_articles_root_path(root_path / dest_dir_path)
 
     articles_db_path = root_path / ARTICLES_DICT_FILE
     articles_db = ArticlesDatabase(articles_db_path)
 
-    if not article_name and len(images_root_path.parts) > 1:
-        os.makedirs(root_path / output_dir_path)
+    if not os.path.exists(articles_root_dest_path):
+        os.makedirs(articles_root_dest_path)
 
-    infile_paths = get_article_paths(root_path / src_dir_path, article_name)
+    infile_paths = get_article_paths(articles_root_path, article_name)
     for infile_path in infile_paths:
-        outfile_path = root_path / output_dir_path / infile_path.name
+        outfile_path = articles_root_dest_path / infile_path.name
         with infile_path.open("r", encoding="utf8") as infile, \
              outfile_path.open("a", encoding="utf8") as outfile:
             for line in infile:
-                image_dirname = get_image_dirname(images_root_path,
+                images_relative_dest_path = get_images_root_path(dest_dir_path)
+                image_dirname = get_image_dirname(images_relative_dest_path,
                                                   outfile_path.stem)
                 outline = transform_line(articles_db, line, username,
                                          root_path, src_dir_path,
@@ -195,9 +191,10 @@ def get_local_file_path(filename_part, root_path, src_dir_path, dest_dir_path):
     search_path = root_path / src_dir_path
     found_files = list(search_path.glob(f"**/*{filename_part}*.md"))
     assert len(found_files) == 1, "should only be one match"
-
     filename = found_files[0].name
-    root = get_articles_root_path(dest_dir_path)
+
+    root = get_articles_root_path(root_path / dest_dir_path)
+
     pathname = f"{root.name}/{filename}"
 
     return pathname

@@ -10,15 +10,15 @@ from database import ArticlesDatabase
 def remove_matches(name, root):
     global articles_db
 
-    path = pathlib.Path(root)
-    matches = path.glob(f"**/*{name}*")
+    root_path = pathlib.Path(root)
+    matches = root_path.glob(f"**/*{name}*")
     for match in matches:
         if match.is_dir():
             shutil.rmtree(match)
         else:
             os.remove(match)
 
-    articles_db_path = path / ARTICLES_DICT_FILE
+    articles_db_path = root_path / ARTICLES_DICT_FILE
     articles_db = ArticlesDatabase(articles_db_path)
     articles_db.delete_record(name)
     articles_db.write_to_file()

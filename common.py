@@ -27,9 +27,7 @@ def get_images_root_path(dirpath):
     return get_root_path(dirpath, JEKYLL_IMAGES_DIR)
 
 
-def get_article_paths(dirpath, article_name):
-    articles_path = get_root_path(dirpath, JEKYLL_POSTS_DIR)
-
+def get_article_paths(articles_path, article_name):
     if article_name:
         return articles_path.glob(f"*{article_name}*.md")
 
