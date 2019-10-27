@@ -10,8 +10,9 @@ from common import get_articles_root_path, replace_colon, ARTICLES_DICT_FILE
 
 articles_dict = {}
 
-def download_and_save_articles(username, dirname, article_name):
-    output_dir_path = get_articles_root_path(pathlib.Path(dirname))
+def download_and_save_articles(username, dirname, root, article_name):
+    root_path = pathlib.Path(root)
+    output_dir_path = get_articles_root_path(root_path / dirname)
 
     if not article_name:
         os.makedirs(output_dir_path)
@@ -20,7 +21,16 @@ def download_and_save_articles(username, dirname, article_name):
     for article_contents in contents_of_articles:
         save_article(output_dir_path, article_contents)
 
-    with open(ARTICLES_DICT_FILE, 'w', encoding='utf-8') as f:
+    articles_dict_path = root_path / ARTICLES_DICT_FILE
+    if article_name:
+        current_articles_dict = None
+        with open(articles_dict_path, 'r', encoding='utf-8') as f:
+            current_articles_dict = json.load(f)
+
+        articles_dict.update(current_articles_dict)
+        os.remove(articles_dict_path)
+
+    with open(articles_dict_path, 'w', encoding='utf-8') as f:
         json.dump(articles_dict, f, ensure_ascii=False, indent=4)
 
 
@@ -97,10 +107,13 @@ def parse_command_line_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("username", help="whose articles to download")
     parser.add_argument("download_dir", help="output files directory")
+    parser.add_argument("root", nargs="?", default=os.getcwd(),
+                        help="starting path")
     parser.add_argument("--article", help="article to download")
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     args = parse_command_line_args()
-    download_and_save_articles(args.username, args.download_dir, args.article)
+    download_and_save_articles(args.username, args.download_dir,
+                               args.root, args.article)
