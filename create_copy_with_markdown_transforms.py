@@ -47,7 +47,9 @@ def copy_image_folders(root_path, src_dir_path, dest_dir_path, article_name):
     if not article_name:
         with os.scandir(images_root_path) as folders:
             for folder in folders:
-                shutil.copytree(folder, images_root_dest_path / folder.name)
+                if os.path.isdir(folder):
+                    destination_folder = images_root_dest_path / folder.name
+                    shutil.copytree(folder, destination_folder)
     else:
         article_root_path = get_articles_root_path(root_path / src_dir_path)
         article_paths = get_article_paths(article_root_path, article_name)
@@ -70,7 +72,7 @@ def transform_markdown_files(root_path, src_dir_path, dest_dir_path,
     articles_db = ArticlesDatabase(articles_db_path)
 
     if not article_name:
-        os.makedirs(articles_root_dest_path)
+        os.makedirs(articles_root_dest_path, exist_ok=True)
 
     infile_paths = get_article_paths(articles_root_path, article_name)
     for infile_path in infile_paths:
