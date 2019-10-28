@@ -13,16 +13,17 @@ from common import (JEKYLL_IMAGES_DIR, get_images_root_path, get_article_paths,
 
 
 def download_images(root, dirname, article_name):
-    dirpath = get_articles_root_path(pathlib.Path(root) / dirname)
-    article_paths = get_article_paths(dirpath, article_name)
-    for article_path in article_paths:
-        process_article(root, dirname, article_path)
+    base_path = pathlib.Path(root) / dirname
+    articles_root_path = get_articles_root_path(base_path)
+    article_file_paths = get_article_paths(articles_root_path, article_name)
+    for article_file_path in article_file_paths:
+        process_article(base_path, article_file_path)
 
 
-def process_article(root, dirname, article_path):
-    print(f'processing {article_path.name}...')
+def process_article(base_path, article_file_path):
+    print(f'processing {article_file_path.name}...')
     image_urls = []
-    with article_path.open("r", encoding="utf8") as f:
+    with article_file_path.open("r", encoding="utf8") as f:
         for line in f:
             cover_image_url = get_cover_image_url(line)
             if cover_image_url:
@@ -33,11 +34,10 @@ def process_article(root, dirname, article_path):
                 image_urls.append(image_url)
 
     if image_urls:
-        root_path = pathlib.Path(root) / dirname
-        images_root_path = get_images_root_path(root_path)
-
-        images_dir_path = images_root_path / article_path.stem
+        images_root_path = get_images_root_path(base_path)
+        images_dir_path = images_root_path / article_file_path.stem
         os.makedirs(images_dir_path)
+
         for image_url in image_urls:
             download_image(image_url, images_dir_path)
 
@@ -55,10 +55,10 @@ def get_markdown_image_urls(str):
 def download_image(url, images_dir_path):
     url_path = pathlib.Path(urlparse(url).path)
     filename = url_path.name
-    file_path = images_dir_path / filename
+    image_file_path = images_dir_path / filename
 
     # Download the file from `url` and save it locally under `filename`:
-    with urllib.request.urlopen(url) as r, open(file_path, 'wb') as f:
+    with urllib.request.urlopen(url) as r, open(image_file_path, 'wb') as f:
         shutil.copyfileobj(r, f)
 
 

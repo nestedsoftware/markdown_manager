@@ -6,25 +6,30 @@ import pathlib
 from urllib.parse import urlparse
 import urllib.request, json
 
-from common import get_articles_root_path, replace_colon, ARTICLES_DICT_FILE
+from common import (get_articles_root_path, get_relative_article_path,
+                    replace_colon)
+from common import ARTICLES_DICT_FILE
+
 from database import ArticlesDatabase
 
 
 def download_and_save_articles(username, dirname, root, article_name):
     root_path = pathlib.Path(root)
-    output_dir_path = get_articles_root_path(root_path / dirname)
+    articles_base_path = root_path / dirname
+    articles_root_path = get_articles_root_path(articles_base_path)
 
     articles_db_path = root_path / ARTICLES_DICT_FILE
     articles_db = ArticlesDatabase(articles_db_path)
 
     if not article_name:
-        os.makedirs(output_dir_path)
+        os.makedirs(articles_root_path)
 
     contents_of_articles = get_contents_of_articles(username, article_name)
     for article_contents in contents_of_articles:
-        save_article(output_dir_path, article_contents, articles_db)
+        save_article(articles_root_path, article_contents, articles_db)
 
     articles_db.write_to_file()
+
 
 def get_contents_of_articles(username, article_name):
     contents_of_articles = []
@@ -67,7 +72,7 @@ def get_article_contents(article_id):
         return results
 
 
-def save_article(output_dir_path, article_contents, articles_db):
+def save_article(articles_root_path, article_contents, articles_db):
     article_url = article_contents['url']
     article_id = article_contents['id']
     article_markdown = article_contents['body_markdown']
@@ -76,13 +81,12 @@ def save_article(output_dir_path, article_contents, articles_db):
     article_filename = get_article_filename(article_url, article_id,
                                             published_date_string)
 
-    article_path = output_dir_path / article_filename
-    with article_path.open("w", encoding="utf8", newline="\n") as f:
+    article_file_path = articles_root_path / article_filename
+    with article_file_path.open("w", encoding="utf8", newline="\n") as f:
         f.write(article_markdown)
 
-    key = f"{output_dir_path.name}/{article_filename}"
+    key = get_relative_article_path(article_filename)
     title = replace_colon(article_contents["title"]).strip()
-
     articles_db.add_record(key, {"title": title})
 
 

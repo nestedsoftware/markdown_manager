@@ -66,7 +66,7 @@ def transform_markdown_files(root_path, src_dir_path, dest_dir_path,
     articles_db_path = root_path / ARTICLES_DICT_FILE
     articles_db = ArticlesDatabase(articles_db_path)
 
-    if not os.path.exists(articles_root_dest_path):
+    if not article_name:
         os.makedirs(articles_root_dest_path)
 
     infile_paths = get_article_paths(articles_root_path, article_name)

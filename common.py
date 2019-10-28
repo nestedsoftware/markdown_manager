@@ -33,5 +33,11 @@ def get_article_paths(articles_path, article_name):
 
     return articles_path.glob('*.md')
 
+
+def get_relative_article_path(article_filename):
+    return (f"{JEKYLL_POSTS_DIR}/{article_filename}" if JEKYLL_POSTS_DIR
+            else article_filename)
+
+
 def replace_colon(a_string):
     return a_string.replace(":", "&#58;")
