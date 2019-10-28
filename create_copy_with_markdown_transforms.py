@@ -10,7 +10,7 @@ from common import cover_image_pattern, image_pattern
 from common import ARTICLES_DICT_FILE
 from common import (get_articles_root_path, get_images_root_path,
                     get_article_paths, get_relative_article_path,
-                    get_relative_image_dirname)
+                    get_relative_image_dirname, replace_colon)
 
 from database import ArticlesDatabase
 
@@ -185,7 +185,7 @@ def get_transform_colon_in_title():
     def replace(match):
         matching_string = match.group(0)
         title = match.group('title')
-        updated_title = title.replace(":", "&#58;")
+        updated_title = replace_colon(title)
         return matching_string.replace(title, updated_title)
 
     return replace
