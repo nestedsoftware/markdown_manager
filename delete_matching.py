@@ -7,6 +7,7 @@ import json
 from common import ARTICLES_DICT_FILE
 from database import ArticlesDatabase
 
+
 def remove_matches(name, root):
     global articles_db
 

@@ -60,6 +60,7 @@ def copy_image_folders(root_path, src_dir_path, dest_dir_path, article_name):
 
         shutil.copytree(images_dir_file_path, images_dir_dest_file_path)
 
+
 def transform_markdown_files(root_path, src_dir_path, dest_dir_path,
                              article_name, username):
     articles_root_path = get_articles_root_path(root_path / src_dir_path)
@@ -154,6 +155,7 @@ def get_transform_liquid_link_tag(articles_db, username, root_path,
 
     return replace
 
+
 def get_transform_markdown_link_tag(username, root_path, src_dir_path):
     def replace(match):
         matching_string = match.group(0)
@@ -171,6 +173,7 @@ def get_transform_markdown_link_tag(username, root_path, src_dir_path):
         return matching_string
 
     return replace
+
 
 def get_local_file_path(filename_part, root_path, src_dir_path):
     search_path = root_path / src_dir_path
@@ -200,6 +203,7 @@ def get_transform_liquid_gist_tag():
 
     return replace
 
+
 def get_transform_liquid_github_tag():
     def replace(match):
         matching_string = match.group(0)
@@ -211,12 +215,14 @@ def get_transform_liquid_github_tag():
 
     return replace
 
+
 def get_transform_heading():
     def replace(match):
         matching_string = match.group(0)
         return f"{matching_string} "
 
     return replace
+
 
 def parse_command_line_args():
     parser = argparse.ArgumentParser()
