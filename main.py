@@ -2,9 +2,9 @@ import os
 import argparse
 import pathlib
 
-from download_devto_articles import download_and_save_articles
+from download_articles import download_and_save_articles
 from download_images import download_images
-from create_copy_with_markdown_transforms import copy_and_transform
+from copy_and_transform import copy_and_transform
 
 
 def parse_command_line_args():

@@ -17,7 +17,9 @@ from database import ArticlesDatabase
 link_regex = r'{%\s*link\s*(?P<url>\S+\/(?P<filename>[^\/\s]+))\/?\s*%}'
 link_pattern = re.compile(link_regex)
 
-md_link_regex = (r'\[.*\]\((?P<url>https?://dev\.to/(?P<username>[^\/\\]+)/(?P<filename>[^\)\s]+)).*\)')
+md_link_url = r'\[.*\]\((?P<url>https?://dev\.to/(?P<username>[^\/\\]+)/'
+md_link_filename = r'(?P<filename>[^\)\s]+)).*\)'
+md_link_regex = md_link_url + md_link_filename
 md_link_pattern = re.compile(md_link_regex)
 
 title_regex = r'^title:\s*(?P<title>\S+(?:\s+\S+)*)'

@@ -1,32 +1,23 @@
 Scripts that help back up and manage dev.to blog articles.
 
-To download a user's articles as markdown from dev.to:
+The main script, `main.py`, runs three subordinate scripts, `download_articles.py`, `download_images.py`, and `copy_and_transform.py`. The following will run the main script, which downloads articles, images, and then creates a copy which transforms the original markdown content:
 
-* `python download_devto_articles.py <username> <download_dir> --article <article>`
+* `python main.py <username> <download dir> <transform dir> <root dir> --article <article name>`
 
-This script downloads all of a user's published articles, and saves each article as a markdown file in the `download_dir` folder. The filename created for each article corresponds to the last portion of its url, but prepends the publication date, and appends the article's dev.to `id`, to the filename (just before the `.md` suffix).
+Options:
 
-> `article` is an optional argument corresponding to the article's name in the url on dev.to. When provided, only that article will be downloaded. For this use case, `download_dir` must already exist.
+* `username` refers to whose articles you wish to download (probably your own)
+* `download dir` is the directory to which the markdown files and image files are to be downloaded
+* `transform dir` copies the contents of `download dir` and applies changes to the markdown (localizes links and fixes some markdown that is valid for dev.to but doesn't work with jekyll)
+* `root dir` determines which path the files are downloaded to - defaults to the current directory.
+* `article name` is optional. Once this script has been run for all existing articles, you can supply this option to download and transform a single additional article. This option assumes all needed directories have been populated. The name refers to the name of the article in the dev.to url - a wildcard match to this parameter is applied in the code.
 
-To download and save article images:
+When `download_articles.py` runs, it generates an `articles_dict.json` file. This file stores a key-value pair mapping of article names to article titles. This is used by the `copy_and_transform.py` script to produce links when an article has a link to another article by the current author as specified by 'username'.
 
-* `python download_images.py <markdown_dir> --article <article>`
+By default, these scripts download the markdown files to the `_posts` subdirectory, and the images to the `assets/images` subdirectory, to match the structure expected by the jekyll static site generator.
 
-This script reads through markdown files in the `markdown_dir` folder and downloads the images referenced in each file. The images are saved into a folder with the same name as the corresponding markdown file (excluding the file extension). The images are saved with filenames that match the filename for the url referenced in the markdown file.
+To delete an article, run:
 
-> `article` is an optional argument corresponding to the article's name in the url on dev.to. When provided, only the images for that article will be downloaded. For this use case, `markdown_dir` must already exist.
+* `python delete_matching <article name> <root dir>`
 
-To create a copy with local image references:
-
-* `python copy_with_local_images.py <srcdir> <destdir>`
-
-This script will make a copy of the markdown files and image folders in `srcdir`, and place them in the `destdir` directory. All image urls in the markdown files will be modified to reference the local files. The resulting files can be used for a self-hosted version of the blog.
-
-> * `article` is an optional argument corresponding to the article's name in the url on dev.to. When provided, only that article will be updated. For this use case, `destdir` must already exist.
-> * This script does not currently re-write links to one's own articles on dev.to that may be in the markdown files. It also does not have special handling for frontmatter, liquid tags, etc.
-
-To combine the previous three steps, run:
-
-* `python download_articles_images_and_create_localized_copies.py <username> <download_dir> <localized_dir> -- article <article>`
-
-`download_dir` is the directory into which to download the markdown files and images. `localized_dir` is the directory into which to copy these files when updating the markdown files to use local image references. `article` is the optional parameter that specifies the name of a single file. As before, when it's used, only the file with that name in its url will be processed.
+This will delete matching markdown files and image directories, and will also remove the mapping for that article from `articles_dict.json`.
