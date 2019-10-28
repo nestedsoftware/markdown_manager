@@ -7,9 +7,10 @@ import shutil
 from urllib.parse import urlparse
 
 from common import cover_image_pattern, image_pattern
-from common import JEKYLL_IMAGES_DIR
+from common import ARTICLES_DICT_FILE
 from common import (get_articles_root_path, get_images_root_path,
-                    get_article_paths, ARTICLES_DICT_FILE)
+                    get_article_paths, get_relative_article_path,
+                    get_relative_image_dirname)
 
 from database import ArticlesDatabase
 
@@ -50,17 +51,18 @@ def copy_image_folders(root_path, src_dir_path, dest_dir_path, article_name):
     else:
         article_root_path = get_articles_root_path(root_path / src_dir_path)
         article_paths = get_article_paths(article_root_path, article_name)
-        article_path = list(article_paths)[0]
+        article_paths_list = list(article_paths)
+        assert len(article_paths_list) == 1, "should only be one match"
+        article_path = article_paths_list[0]
 
-        images_dir_path = images_root_path / article_path.stem
-        images_dir_dest_path = images_root_dest_path / article_path.stem
+        images_dir_file_path = images_root_path / article_path.stem
+        images_dir_dest_file_path = images_root_dest_path / article_path.stem
 
-        shutil.copytree(images_dir_path, images_dir_dest_path)
+        shutil.copytree(images_dir_file_path, images_dir_dest_file_path)
 
 def transform_markdown_files(root_path, src_dir_path, dest_dir_path,
                              article_name, username):
     articles_root_path = get_articles_root_path(root_path / src_dir_path)
-    images_root_dest_path = get_images_root_path(root_path / dest_dir_path)
     articles_root_dest_path = get_articles_root_path(root_path / dest_dir_path)
 
     articles_db_path = root_path / ARTICLES_DICT_FILE
@@ -75,26 +77,11 @@ def transform_markdown_files(root_path, src_dir_path, dest_dir_path,
         with infile_path.open("r", encoding="utf8") as infile, \
              outfile_path.open("a", encoding="utf8") as outfile:
             for line in infile:
-                images_relative_dest_path = get_images_root_path(dest_dir_path)
-                image_dirname = get_image_dirname(images_relative_dest_path,
-                                                  outfile_path.stem)
+                image_dirname = get_relative_image_dirname(outfile_path.stem)
                 outline = transform_line(articles_db, line, username,
                                          root_path, src_dir_path,
                                          dest_dir_path, image_dirname)
                 outfile.write(outline)
-
-
-def get_image_dirname(images_root_path, image_dirname):
-    dirname = ""
-    parts = images_root_path.parts
-    if len(parts) > 1:
-        dirname += "/"
-        for i in range(1, len(parts)):
-            dirname += f"{parts[i]}/"
-
-    dirname += image_dirname
-
-    return dirname
 
 
 def transform_line(articles_db, line, username, root_path, src_dir_path,
@@ -104,12 +91,11 @@ def transform_line(articles_db, line, username, root_path, src_dir_path,
     line = re.sub(image_pattern, replace, line)
 
     replace = get_transform_liquid_link_tag(articles_db, username,
-                                            root_path, src_dir_path,
-                                            dest_dir_path)
+                                            root_path, src_dir_path)
     line = re.sub(link_pattern, replace, line)
 
     replace = get_transform_markdown_link_tag(username, root_path,
-                                              src_dir_path, dest_dir_path)
+                                              src_dir_path)
     line = re.sub(md_link_pattern, replace, line)
 
     replace = get_transform_colon_in_title()
@@ -150,7 +136,7 @@ def get_localize_image(dirname):
 
 
 def get_transform_liquid_link_tag(articles_db, username, root_path,
-                                  src_dir_path, dest_dir_path):
+                                  src_dir_path):
     def replace(match):
         matching_string = match.group(0)
         link_path = match.group('url')
@@ -158,7 +144,7 @@ def get_transform_liquid_link_tag(articles_db, username, root_path,
 
         if username in link_path:
             pathname = get_local_file_path(filename_part, root_path,
-                                           src_dir_path, dest_dir_path)
+                                           src_dir_path)
             replacement = matching_string.replace(link_path, pathname)
             title = articles_db.get_record(pathname)["title"]
             return f"* [{title}]({replacement})"
@@ -168,8 +154,7 @@ def get_transform_liquid_link_tag(articles_db, username, root_path,
 
     return replace
 
-def get_transform_markdown_link_tag(username, root_path,
-                                    src_dir_path, dest_dir_path):
+def get_transform_markdown_link_tag(username, root_path, src_dir_path):
     def replace(match):
         matching_string = match.group(0)
         link_path = match.group('url')
@@ -178,7 +163,7 @@ def get_transform_markdown_link_tag(username, root_path,
         user = match.group('username')
         if username == user:
             pathname = get_local_file_path(filename_part, root_path,
-                                           src_dir_path, dest_dir_path)
+                                           src_dir_path)
             local_link = f"{{% link {pathname} %}}"
             replacement = matching_string.replace(link_path, local_link)
             return replacement
@@ -187,17 +172,13 @@ def get_transform_markdown_link_tag(username, root_path,
 
     return replace
 
-def get_local_file_path(filename_part, root_path, src_dir_path, dest_dir_path):
+def get_local_file_path(filename_part, root_path, src_dir_path):
     search_path = root_path / src_dir_path
     found_files = list(search_path.glob(f"**/*{filename_part}*.md"))
     assert len(found_files) == 1, "should only be one match"
     filename = found_files[0].name
 
-    root = get_articles_root_path(root_path / dest_dir_path)
-
-    pathname = f"{root.name}/{filename}"
-
-    return pathname
+    return get_relative_article_path(filename)
 
 
 def get_transform_colon_in_title():

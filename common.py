@@ -39,5 +39,10 @@ def get_relative_article_path(article_filename):
             else article_filename)
 
 
+def get_relative_image_dirname(image_dirname):
+    return (f"/{JEKYLL_IMAGES_DIR}/{image_dirname}" if JEKYLL_IMAGES_DIR
+            else f"/{image_dirname}")
+
+
 def replace_colon(a_string):
     return a_string.replace(":", "&#58;")
