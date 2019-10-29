@@ -28,8 +28,7 @@ def remove_matches(name, root):
 def parse_command_line_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("name", help="delete all matching files/dirs")
-    parser.add_argument("root", nargs="?", default=os.getcwd(),
-                        help="starting path")
+    parser.add_argument("--root", default=os.getcwd(), help="starting path")
     return parser.parse_args()
 
 

@@ -13,7 +13,7 @@ from common import ARTICLES_DICT_FILE
 from database import ArticlesDatabase
 
 
-def download_and_save_articles(username, dirname, root, article_name):
+def download_and_save_articles(username, root, dirname, article_name):
     root_path = pathlib.Path(root)
     articles_base_path = root_path / dirname
     articles_root_path = get_articles_root_path(articles_base_path)
@@ -103,14 +103,14 @@ def get_article_filename(article_url, article_id, published_date):
 def parse_command_line_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("username", help="whose articles to download")
-    parser.add_argument("download_dir", help="output files directory")
-    parser.add_argument("root", nargs="?", default=os.getcwd(),
-                        help="starting path")
+    parser.add_argument("--root", default=os.getcwd(), help="base path")
+    parser.add_argument("--download_dir", default="downloaded_files",
+                        help="downloaded files directory")
     parser.add_argument("--article", help="article to download")
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     args = parse_command_line_args()
-    download_and_save_articles(args.username, args.download_dir,
-                               args.root, args.article)
+    download_and_save_articles(args.username, args.root, args.download_dir,
+                               args.article)

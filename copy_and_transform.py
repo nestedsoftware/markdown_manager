@@ -35,8 +35,8 @@ heading_regex = r'(?:^\s*|^)(?:#+)(?:\b)'
 heading_pattern = re.compile(heading_regex)
 
 
-def copy_and_transform(root_path, src_dir_path, dest_dir_path, article_name,
-                       username):
+def copy_and_transform(root_path, src_dir_path, dest_dir_path, username,
+                       article_name):
     copy_image_folders(root_path, src_dir_path, dest_dir_path, article_name)
     transform_markdown_files(root_path, src_dir_path, dest_dir_path,
                              article_name, username)
@@ -230,10 +230,11 @@ def get_transform_heading():
 
 def parse_command_line_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("srcdir", help="whose articles to download")
-    parser.add_argument("destdir", help="output files directory")
-    parser.add_argument("root", nargs="?", default=os.getcwd(),
-                        help="starting path")
+    parser.add_argument("--root", default=os.getcwd(), help="base path")
+    parser.add_argument("--download_dir", default="downloaded_files",
+                        help="downloaded files directory")
+    parser.add_argument("--transformed_dir", default="transformed_files",
+                        help="transformed files directory")
     parser.add_argument("--username", help="owner of this blog")
     parser.add_argument("--article", help="download images for single article")
 
@@ -243,10 +244,10 @@ def parse_command_line_args():
 if __name__ == '__main__':
     args = parse_command_line_args()
     root_path = pathlib.Path(args.root)
-    src_dir_path = pathlib.Path(args.srcdir)
-    dest_dir_path = pathlib.Path(args.destdir)
+    download_dir_path = pathlib.Path(args.download_dir)
+    transformed_dir_path = pathlib.Path(args.transformed_dir)
     username = args.username
     article = args.article
 
-    copy_and_transform(root_path, src_dir_path, dest_dir_path,
-                       article, username)
+    copy_and_transform(root_path, download_dir_path, transformed_dir_path,
+                       username, article)

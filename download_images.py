@@ -64,9 +64,9 @@ def download_image(url, images_dir_path):
 
 def parse_command_line_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("markdown_dir", help="markdown files directory")
-    parser.add_argument("root", nargs="?", default=os.getcwd(),
-                        help="starting path")
+    parser.add_argument("--root", default=os.getcwd(), help="base path")
+    parser.add_argument("--download_dir", default="downloaded_files",
+                        help="downloaded files directory")
     parser.add_argument("--article", help="download images for single article")
 
     return parser.parse_args()
@@ -74,4 +74,4 @@ def parse_command_line_args():
 
 if __name__ == "__main__":
     args = parse_command_line_args()
-    download_images(args.root, args.markdown_dir, args.article)
+    download_images(args.root, args.download_dir, args.article)
