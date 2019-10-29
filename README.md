@@ -7,7 +7,7 @@ The `main.py` script runs three subordinate scripts, `download_articles.py`, `do
 Options:
 
 * `username` refers to the dev.to user whose articles will be downloaded
-* `download dir` is the directory to which the markdown files and image files that will be downloaded
+* `download dir` is the directory to which the markdown files and image files will be downloaded
 * `transform dir` copies the contents of `download dir` and applies changes to the markdown (localizes links and fixes some markdown to work with jekyll)
 * `root dir` determines which path the files are downloaded to - defaults to the current directory.
 * `article name` is optional. Once this script has been run for all existing articles, this option can be used to download and transform additional articles one at a time. This option assumes that the directory structure has already been generated previously. The article name refers to the name of the article in the dev.to url - a wildcard match to this parameter is applied.
