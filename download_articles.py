@@ -24,22 +24,21 @@ def download_and_save_articles(username, root, dirname, article_name):
     if not article_name:
         os.makedirs(articles_root_path)
 
-    contents_of_articles = get_contents_of_articles(username, article_name)
-    for article_contents in contents_of_articles:
-        save_article(articles_root_path, article_contents, articles_db)
+    save_contents_of_articles(username, articles_root_path, articles_db,
+                              article_name)
 
     articles_db.write_to_file()
 
 
-def get_contents_of_articles(username, article_name):
-    contents_of_articles = []
+def save_contents_of_articles(username, articles_root_path, articles_db,
+                              article_name):
     articles = get_articles(username)
     for article in articles:
         if not article_name or article_name in article['url']:
-            contents = get_article_contents(article['id'])
-            contents_of_articles.append(contents)
+            print(f'downloading article {article["title"]}...')
 
-    return contents_of_articles
+            article_contents = get_article_contents(article['id'])
+            save_article(articles_root_path, article_contents, articles_db)
 
 
 def get_articles(username):

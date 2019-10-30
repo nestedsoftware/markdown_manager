@@ -1,3 +1,4 @@
+import errno
 import os
 import json
 import re
@@ -14,7 +15,7 @@ from common import (get_articles_root_path, get_images_root_path,
 
 from database import ArticlesDatabase
 
-link_regex = r'{%\s*link\s*(?P<url>\S+\/(?P<filename>[^\/\s]+))\/?\s*%}'
+link_regex = r'{%\s*link\s*(?P<url>(?:https?://dev.to)?/?(?P<username>\S+)\/(?P<filename>[^\/\s]+))\/?\s*%}'
 link_pattern = re.compile(link_regex)
 
 md_link_url = r'\[.*\]\((?P<url>https?://dev\.to/(?P<username>[^\/\\]+)/'
@@ -34,6 +35,8 @@ github_pattern = re.compile(github_regex)
 heading_regex = r'(?:^\s*|^)(?:#+)(?:\b)'
 heading_pattern = re.compile(heading_regex)
 
+filename_regex = r'^(?P<date>\d{4}-\d{2}-\d{2})-(?P<main>[^.]+)'
+filename_pattern = re.compile(filename_regex)
 
 def copy_and_transform(root_path, src_dir_path, dest_dir_path, username,
                        article_name):
@@ -146,8 +149,9 @@ def get_transform_liquid_link_tag(articles_db, username, root_path,
         matching_string = match.group(0)
         link_path = match.group('url')
         filename_part = match.group('filename')
+        user = match.group('username')
 
-        if username in link_path:
+        if user == username and '/comments' not in matching_string:
             pathname = get_local_file_path(filename_part, root_path,
                                            src_dir_path)
             replacement = matching_string.replace(link_path, pathname)
@@ -167,7 +171,7 @@ def get_transform_markdown_link_tag(username, root_path, src_dir_path):
         filename_part = match.group('filename')
 
         user = match.group('username')
-        if username == user:
+        if username == user and '/comments' not in matching_string:
             pathname = get_local_file_path(filename_part, root_path,
                                            src_dir_path)
             local_link = f"{{% link {pathname} %}}"
@@ -182,10 +186,29 @@ def get_transform_markdown_link_tag(username, root_path, src_dir_path):
 def get_local_file_path(filename_part, root_path, src_dir_path):
     search_path = root_path / src_dir_path
     found_files = list(search_path.glob(f"**/*{filename_part}*.md"))
-    assert len(found_files) == 1, "should only be one match"
-    filename = found_files[0].name
 
+    assert len(found_files) > 0, "there should be at least one match"
+    if len(found_files) > 1:
+        relative_article_path = None
+        for file in found_files:
+            if is_filename_a_match(filename_part, file.name):
+                relative_article_path = get_relative_article_path(file.name)
+                if relative_article_path:
+                    break;
+
+        if not relative_article_path:
+            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT),
+                                    filename_part)
+        return relative_article_path
+
+    filename = found_files[0].name
     return get_relative_article_path(filename)
+
+
+def is_filename_a_match(filename_part, filename):
+    result = filename_pattern.match(filename)
+    return_value = result and result.group("main") == filename_part
+    return return_value
 
 
 def get_transform_colon_in_title():
