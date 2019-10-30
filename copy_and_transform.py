@@ -171,7 +171,7 @@ def get_transform_markdown_link_tag(username, root_path, src_dir_path):
         filename_part = match.group('filename')
 
         user = match.group('username')
-        if username == user and '/comments' not in matching_string:
+        if user == username and '/comments' not in matching_string:
             pathname = get_local_file_path(filename_part, root_path,
                                            src_dir_path)
             local_link = f"{{% link {pathname} %}}"
