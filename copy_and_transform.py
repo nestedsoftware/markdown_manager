@@ -15,11 +15,19 @@ from common import (get_articles_root_path, get_images_root_path,
 
 from database import ArticlesDatabase
 
-link_regex = r'{%\s*link\s*(?P<url>(?:https?://dev.to)?/?(?P<username>\S+?)/(?P<filename>\S+))/?\s*%}'
-link_pattern = re.compile(link_regex)
+link_regex = r'''
+    {%\s*link\s*
+    (?P<url>(?:https?://dev.to)?
+    /?(?P<username>\S+?)/
+    (?P<filename>\S+))/?\s*%}'''
+link_pattern = re.compile(link_regex, re.VERBOSE)
 
-md_link_regex = r'\[.*\]\((?:\s*)(?P<url>(?:https?://dev\.to)?/(?P<username>[^/\\]+)/(?P<filename>[^\)\s]+)).*\)'
-md_link_pattern = re.compile(md_link_regex)
+md_link_regex = r'''
+    \[.*\]\((?:\s*)
+    (?P<url>(?:https?://dev\.to)?
+    /(?P<username>[^/\\]+)/
+    (?P<filename>[^\)\s]+)).*\)'''
+md_link_pattern = re.compile(md_link_regex, re.VERBOSE)
 
 title_regex = r'^title:\s*(?P<title>\S+(?:\s+\S+)*)'
 title_pattern = re.compile(title_regex)
