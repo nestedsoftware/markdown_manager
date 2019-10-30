@@ -15,12 +15,10 @@ from common import (get_articles_root_path, get_images_root_path,
 
 from database import ArticlesDatabase
 
-link_regex = r'{%\s*link\s*(?P<url>(?:https?://dev.to)?/?(?P<username>\S+)\/(?P<filename>[^\/\s]+))\/?\s*%}'
+link_regex = r'{%\s*link\s*(?P<url>(?:https?://dev.to)?/?(?P<username>\S+?)/(?P<filename>\S+))/?\s*%}'
 link_pattern = re.compile(link_regex)
 
-md_link_url = r'\[.*\]\((?P<url>https?://dev\.to/(?P<username>[^\/\\]+)/'
-md_link_filename = r'(?P<filename>[^\)\s]+)).*\)'
-md_link_regex = md_link_url + md_link_filename
+md_link_regex = r'\[.*\]\((?:\s*)(?P<url>(?:https?://dev\.to)?/(?P<username>[^/\\]+)/(?P<filename>[^\)\s]+)).*\)'
 md_link_pattern = re.compile(md_link_regex)
 
 title_regex = r'^title:\s*(?P<title>\S+(?:\s+\S+)*)'
@@ -37,6 +35,7 @@ heading_pattern = re.compile(heading_regex)
 
 filename_regex = r'^(?P<date>\d{4}-\d{2}-\d{2})-(?P<main>[^.]+)'
 filename_pattern = re.compile(filename_regex)
+
 
 def copy_and_transform(root_path, src_dir_path, dest_dir_path, username,
                        article_name):
@@ -149,16 +148,18 @@ def get_transform_liquid_link_tag(articles_db, username, root_path,
         matching_string = match.group(0)
         link_path = match.group('url')
         filename_part = match.group('filename')
-        user = match.group('username')
+        matched_username = match.group('username')
 
-        if user == username and '/comments' not in matching_string:
+
+        if is_self_link(username, matched_username, link_path):
             pathname = get_local_file_path(filename_part, root_path,
                                            src_dir_path)
             replacement = matching_string.replace(link_path, pathname)
             title = articles_db.get_record(pathname)["title"]
             return f"* [{title}]({replacement})"
 
-        pathname = f"https://dev.to/{link_path}"
+        pathname = (f"https://dev.to/{link_path}" if is_local_link(link_path)
+                    else link_path)
         return f"* [{pathname}]({pathname})"
 
     return replace
@@ -169,9 +170,9 @@ def get_transform_markdown_link_tag(username, root_path, src_dir_path):
         matching_string = match.group(0)
         link_path = match.group('url')
         filename_part = match.group('filename')
+        matched_username = match.group('username')
 
-        user = match.group('username')
-        if user == username and '/comments' not in matching_string:
+        if is_self_link(username, matched_username, link_path):
             pathname = get_local_file_path(filename_part, root_path,
                                            src_dir_path)
             local_link = f"{{% link {pathname} %}}"
@@ -181,6 +182,20 @@ def get_transform_markdown_link_tag(username, root_path, src_dir_path):
         return matching_string
 
     return replace
+
+
+def is_self_link(username, matched_username, url):
+    if not is_local_link(url):
+        return False
+
+    return matched_username == username and '/comments' not in url
+
+
+def is_local_link(url):
+    if 'http' not in url:
+        return True
+
+    return 'dev.to' in url
 
 
 def get_local_file_path(filename_part, root_path, src_dir_path):
