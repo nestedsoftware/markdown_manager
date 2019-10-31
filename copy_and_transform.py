@@ -176,11 +176,9 @@ def get_transform_liquid_link_tag(articles_db, username, root_path,
 def get_transform_markdown_link_tag(username, root_path, src_dir_path):
     def replace(match):
         matching_string = match.group(0)
-        # print(f"matching_string = {matching_string}")
         link_path = match.group('url')
         filename_part = match.group('filename')
         matched_username = match.group('username')
-        # print(f"matched_username = {matched_username}")
 
         if is_self_link(username, matched_username, link_path):
             pathname = get_local_file_path(filename_part, root_path,
@@ -195,13 +193,9 @@ def get_transform_markdown_link_tag(username, root_path, src_dir_path):
 
 
 def is_self_link(username, matched_username, url):
-    # print(username)
-    # print(matched_username)
-    # print(url)
     if not is_local_link(url):
         return False
 
-    # print(f"return value = {matched_username == username and '/comments' not in url}")
     return matched_username == username and '/comments' not in url
 
 
