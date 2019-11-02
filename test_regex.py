@@ -210,3 +210,18 @@ def test_markdown_link_tag_multiple_matches():
     assert result.group("url") == "http://yann.lecun.com/exdb/mnist/"
     assert result.group("username") == "http:"
     assert result.group("filename") == "/yann.lecun.com/exdb/mnist/"
+
+
+def test_markdown_link_tag_parentheses_around_link():
+    md_link = "[geometry of standard deviation](https://dev.to/nestedsoftware/the-geometry-of-standard-deviation--3m3o)"
+    text = f"(see my article on the {md_link})"
+
+    results = md_link_pattern.finditer(text)
+    result = next(results)
+
+    print(result.group(0))
+    assert result.group(0) == md_link
+    assert result.group("url") == r"https://dev.to/nestedsoftware/the-geometry-of-standard-deviation--3m3o"
+    assert result.group("username") == r"nestedsoftware"
+    assert result.group("filename") == r"the-geometry-of-standard-deviation--3m3o"
+

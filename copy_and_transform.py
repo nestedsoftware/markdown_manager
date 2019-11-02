@@ -15,18 +15,15 @@ from common import (get_articles_root_path, get_images_root_path,
 
 from database import ArticlesDatabase
 
-link_regex = r'''
-    {%\s*link\s*
-    (?P<url>(?:https?://dev.to)?
-    /?(?P<username>\S+?)/
-    (?P<filename>\S+))/?\s*%}'''
+link_regex_shared = r'''
+    \s*(?P<url>(?:https?://dev.to)?
+    /?(?P<username>[^\s\)]+?)/
+    (?P<filename>[^\s\)]+))/?\s*'''
+
+link_regex = r'{%\s*link' + link_regex_shared + r'%}'
 link_pattern = re.compile(link_regex, re.VERBOSE)
 
-md_link_regex = r'''
-    \[.*?\]\((?:\s*)
-    (?P<url>(?:https?://dev\.to)?
-    /?(?P<username>[^/\\]+)/
-    (?P<filename>[^\)\s]+))\s*\)'''
+md_link_regex = r'\[.*?\]\(' + link_regex_shared + r'\)'
 md_link_pattern = re.compile(md_link_regex, re.VERBOSE)
 
 title_regex = r'^title:\s*(?P<title>\S+(?:\s+\S+)*)'
@@ -66,13 +63,15 @@ def copy_image_folders(root_path, src_dir_path, dest_dir_path, article_name):
         article_root_path = get_articles_root_path(root_path / src_dir_path)
         article_paths = get_article_paths(article_root_path, article_name)
         article_paths_list = list(article_paths)
+
         assert len(article_paths_list) == 1, "should only be one match"
         article_path = article_paths_list[0]
 
         images_dir_file_path = images_root_path / article_path.stem
         images_dir_dest_file_path = images_root_dest_path / article_path.stem
 
-        shutil.copytree(images_dir_file_path, images_dir_dest_file_path)
+        if os.path.exists(images_dir_file_path):
+            shutil.copytree(images_dir_file_path, images_dir_dest_file_path)
 
 
 def transform_markdown_files(root_path, src_dir_path, dest_dir_path,
@@ -88,6 +87,7 @@ def transform_markdown_files(root_path, src_dir_path, dest_dir_path,
 
     infile_paths = get_article_paths(articles_root_path, article_name)
     for infile_path in infile_paths:
+        print(f"transforming file {infile_path}...")
         outfile_path = articles_root_dest_path / infile_path.name
         with infile_path.open("r", encoding="utf8") as infile, \
              outfile_path.open("a", encoding="utf8") as outfile:
