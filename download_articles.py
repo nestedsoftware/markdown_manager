@@ -3,6 +3,10 @@ import datetime
 import json
 import argparse
 import pathlib
+import logging
+
+from logging import Logger
+
 from urllib.parse import urlparse
 import urllib.request, json
 
@@ -11,6 +15,8 @@ from common import (get_articles_root_path, get_relative_article_path,
 from common import ARTICLES_DICT_FILE
 
 from database import ArticlesDatabase
+
+logging.getLogger().setLevel(logging.INFO)
 
 
 def download_and_save_articles(username, root, dirname, article_name):
@@ -35,7 +41,7 @@ def save_contents_of_articles(username, articles_root_path, articles_db,
     articles = get_articles(username)
     for article in articles:
         if not article_name or article_name in article['url']:
-            print(f'downloading article {article["title"]}...')
+            logging.info(f'downloading article {article["title"]}...')
 
             article_contents = get_article_contents(article['id'])
             save_article(articles_root_path, article_contents, articles_db)

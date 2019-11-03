@@ -4,7 +4,11 @@ import json
 import re
 import argparse
 import pathlib
+import logging
 import shutil
+
+from logging import Logger
+
 from urllib.parse import urlparse
 
 from common import cover_image_pattern, image_pattern
@@ -14,6 +18,8 @@ from common import (get_articles_root_path, get_images_root_path,
                     get_relative_image_dirname, replace_colon)
 
 from database import ArticlesDatabase
+
+logging.getLogger().setLevel(logging.INFO)
 
 link_regex_shared = r'''
     \s*(?P<url>(?:https?://dev.to)?
@@ -87,7 +93,7 @@ def transform_markdown_files(root_path, src_dir_path, dest_dir_path,
 
     infile_paths = get_article_paths(articles_root_path, article_name)
     for infile_path in infile_paths:
-        print(f"transforming file {infile_path}...")
+        logging.info(f"transforming file {infile_path}...")
         outfile_path = articles_root_dest_path / infile_path.name
         with infile_path.open("r", encoding="utf8") as infile, \
              outfile_path.open("a", encoding="utf8") as outfile:

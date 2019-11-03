@@ -3,14 +3,20 @@ import sys
 import argparse
 import pathlib
 import glob
+import logging
+import shutil
+
+from logging import Logger
+
 import urllib.request
 from  urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
-import shutil
 
 from common import cover_image_pattern, image_pattern
 from common import (JEKYLL_IMAGES_DIR, get_images_root_path, get_article_paths,
                     get_articles_root_path)
+
+logging.getLogger().setLevel(logging.INFO)
 
 
 def download_images(root, dirname, article_name):
@@ -22,7 +28,7 @@ def download_images(root, dirname, article_name):
 
 
 def process_article(base_path, article_file_path):
-    print(f'downloading images for {article_file_path.name}...')
+    logging.info(f'downloading images for {article_file_path.name}...')
     image_urls = []
     with article_file_path.open("r", encoding="utf8") as f:
         for line in f:
@@ -63,7 +69,7 @@ def download_image(url, images_dir_path):
         with urllib.request.urlopen(url) as r, open(image_file_path, 'wb') as f:
             shutil.copyfileobj(r, f)
     except (HTTPError, URLError) as e:
-        print(f"error downloading image: {url}, {e}")
+        logging.error(f"error downloading image: {url}, {e}")
 
 def parse_command_line_args():
     parser = argparse.ArgumentParser()
