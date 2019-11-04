@@ -6,8 +6,6 @@ import glob
 import logging
 import shutil
 
-from logging import Logger
-
 import urllib.request
 from  urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
@@ -15,8 +13,9 @@ from urllib.parse import urlparse
 from common import cover_image_pattern, image_pattern
 from common import (JEKYLL_IMAGES_DIR, get_images_root_path, get_article_paths,
                     get_articles_root_path)
+from common import set_logging_level
 
-logging.getLogger().setLevel(logging.INFO)
+set_logging_level()
 
 
 def download_images(root, dirname, article_name):

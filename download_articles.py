@@ -5,18 +5,17 @@ import argparse
 import pathlib
 import logging
 
-from logging import Logger
-
 from urllib.parse import urlparse
 import urllib.request, json
 
 from common import (get_articles_root_path, get_relative_article_path,
                     replace_colon)
 from common import ARTICLES_DICT_FILE
+from common import set_logging_level
 
 from database import ArticlesDatabase
 
-logging.getLogger().setLevel(logging.INFO)
+set_logging_level()
 
 
 def download_and_save_articles(username, root, dirname, article_name):

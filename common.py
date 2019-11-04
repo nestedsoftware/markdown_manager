@@ -1,4 +1,5 @@
 import re
+import logging
 
 JEKYLL_POSTS_DIR = "_posts"
 JEKYLL_IMAGES_DIR = "assets/images"
@@ -13,6 +14,9 @@ url = r'\(\s*(?P<url>\S+)\s*'
 title = r'(?:\"(?P<titletext>[^\"]*)\")?\)'
 image_regex = alt + url + title
 image_pattern = re.compile(image_regex)
+
+def set_logging_level():
+    logging.getLogger().setLevel(logging.INFO)
 
 
 def get_root_path(dirpath, subdir_name):

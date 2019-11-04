@@ -7,8 +7,6 @@ import pathlib
 import logging
 import shutil
 
-from logging import Logger
-
 from urllib.parse import urlparse
 
 from common import cover_image_pattern, image_pattern
@@ -16,10 +14,11 @@ from common import ARTICLES_DICT_FILE
 from common import (get_articles_root_path, get_images_root_path,
                     get_article_paths, get_relative_article_path,
                     get_relative_image_dirname, replace_colon)
+from common import set_logging_level
 
 from database import ArticlesDatabase
 
-logging.getLogger().setLevel(logging.INFO)
+set_logging_level()
 
 link_regex_shared = r'''
     \s*(?P<url>(?:https?://dev.to)?
