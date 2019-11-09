@@ -9,8 +9,6 @@ from database import ArticlesDatabase
 
 
 def remove_matches(name, root):
-    global articles_db
-
     root_path = pathlib.Path(root)
     matches = root_path.glob(f"**/*{name}*")
     for match in matches:
