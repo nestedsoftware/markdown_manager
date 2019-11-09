@@ -28,8 +28,9 @@ class ArticlesDatabase:
         if os.path.exists(self.file_path):
             os.remove(self.file_path)
 
-        with open(self.file_path, 'w', encoding='utf-8') as f:
-            json.dump(self.db, f, ensure_ascii=False, indent=4)
+        if self.db:
+            with open(self.file_path, 'w', encoding='utf-8') as f:
+                json.dump(self.db, f, ensure_ascii=False, indent=4)
 
     def find_key(self, name):
         for key in self.db:
