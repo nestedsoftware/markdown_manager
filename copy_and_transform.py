@@ -124,8 +124,8 @@ def transform_line(articles_db, line, username, root_path, src_dir_path,
     replace = get_transform_liquid_gist_tag()
     line = re.sub(gist_pattern, replace, line)
 
-    replace = get_transform_liquid_github_tag()
-    line = re.sub(github_pattern, replace, line)
+    # replace = get_transform_liquid_github_tag()
+    # line = re.sub(github_pattern, replace, line)
 
     replace = get_transform_heading()
     line = re.sub(heading_pattern, replace, line)
