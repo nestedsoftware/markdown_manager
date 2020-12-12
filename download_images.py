@@ -63,9 +63,17 @@ def download_image(url, images_dir_path):
     filename = url_path.name
     image_file_path = images_dir_path / filename
 
+    req = urllib.request.Request(
+        url,
+        data=None,
+        headers={
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
+        }
+    )
+
     # Download the file from `url` and save it locally under `filename`:
     try :
-        with urllib.request.urlopen(url) as r, open(image_file_path, 'wb') as f:
+        with urllib.request.urlopen(req) as r, open(image_file_path, 'wb') as f:
             shutil.copyfileobj(r, f)
     except (HTTPError, URLError) as e:
         logging.error(f"error downloading image: {url}, {e}")

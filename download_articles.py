@@ -51,7 +51,15 @@ def get_articles(username):
     all_results = []
     url_string = get_url_string(username, page)
     while True:
-        with urllib.request.urlopen(url_string) as url:
+        req = urllib.request.Request(
+            url_string,
+            data=None,
+            headers={
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
+            }
+        )
+
+        with urllib.request.urlopen(req) as url:
             data = url.read().decode()
             results = json.loads(data)
 
@@ -70,7 +78,15 @@ def get_url_string(username, page):
 
 def get_article_contents(article_id):
     url_string = f"https://dev.to/api/articles/{article_id}"
-    with urllib.request.urlopen(url_string) as url:
+    req = urllib.request.Request(
+        url_string,
+        data=None,
+        headers={
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
+        }
+    )
+
+    with urllib.request.urlopen(req) as url:
         data = url.read().decode()
         results = json.loads(data)
         return results
