@@ -22,6 +22,6 @@ By default, these scripts download the markdown files to the `_posts` subdirecto
 
 To delete an article, run:
 
-* `python delete_matching <article name> --root <root dir>`
+* `python delete_matching.py <article name> --root <root dir>`
 
 This will delete matching markdown files and image directories, and will also remove the mapping for that article from `articles_dict.json`.
